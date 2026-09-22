@@ -9902,7 +9902,11 @@ The score must be between 0 and the maximum marks assigned to the question.`;
 
         // 7. Assessment Data
         if (data.assessmentData && typeof data.assessmentData === 'object') {
-          localStorage.setItem('rizz_assessments_data', JSON.stringify(data.assessmentData));
+          const prevAsmData = localStorage.getItem(LS_ASSESSMENTS) || '';
+          const freshAsmData = JSON.stringify(data.assessmentData);
+          if (prevAsmData !== freshAsmData) {
+            localStorage.setItem(LS_ASSESSMENTS, freshAsmData);
+          }
         }
 
         syncWorkshopNavAndJourney();
