@@ -27,6 +27,7 @@
   <!-- Firebase App & Realtime Database SDKs (Compat v9) -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
   <!-- Firebase Project Configuration & Realtime Sync Layer -->
   <script src="firebase-config.js"></script>
 
@@ -3527,10 +3528,10 @@
         <div class="p-3 rounded-xl bg-[var(--bg-app)] border border-[var(--border-subtle)] text-xs text-[var(--text-primary)] space-y-1.5 font-sans">
           <div class="flex items-center gap-2"><i class="fa-solid fa-angle-right text-[#D31F83] text-[0.65rem]"></i> <span>Pre-Test &amp; evaluations</span></div>
           <div class="flex items-center gap-2"><i class="fa-solid fa-angle-right text-[#D31F83] text-[0.65rem]"></i> <span>Workshop progress &amp; completions</span></div>
-          <div class="flex items-center gap-2"><i class="fa-solid fa-angle-right text-[#D31F83] text-[0.65rem]"></i> <span>Assessment attempts &amp; uploaded deliverables</span></div>
-          <div class="flex items-center gap-2"><i class="fa-solid fa-angle-right text-[#D31F83] text-[0.65rem]"></i> <span>Mentor evaluations &amp; scores</span></div>
-          <div class="flex items-center gap-2"><i class="fa-solid fa-angle-right text-[#D31F83] text-[0.65rem]"></i> <span>Admin evaluations &amp; final RIZZ scores</span></div>
-          <div class="flex items-center gap-2"><i class="fa-solid fa-angle-right text-[#D31F83] text-[0.65rem]"></i> <span>Published results &amp; opportunity eligibility</span></div>
+          <div class="flex items-center gap-2"><i class="fa-solid fa-angle-right text-[#D31F83] text-[0.65rem]"></i> <span>Assessment attempt &amp; Assessment uploads</span></div>
+          <div class="flex items-center gap-2"><i class="fa-solid fa-angle-right text-[#D31F83] text-[0.65rem]"></i> <span>Assessment evaluation &amp; mentor scores</span></div>
+          <div class="flex items-center gap-2"><i class="fa-solid fa-angle-right text-[#D31F83] text-[0.65rem]"></i> <span>Results &amp; final RIZZ scores</span></div>
+          <div class="flex items-center gap-2"><i class="fa-solid fa-angle-right text-[#D31F83] text-[0.65rem]"></i> <span>Opportunity eligibility</span></div>
         </div>
         <div class="p-2.5 rounded-lg bg-[var(--bg-app)] border border-[var(--border-subtle)] flex items-start gap-2 text-xs text-[var(--text-muted)]">
           <i class="fa-solid fa-circle-info text-[#EDA233] mt-0.5 flex-shrink-0" aria-hidden="true"></i>
@@ -8946,27 +8947,62 @@
           idbOk = true;
         }
 
-        try {
-          var base64 = await this.blobToBase64(blobOrFile);
-          await fetch(getBackendApiUrl('/api/upload'), {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              key: key,
-              name: fileName,
-              type: fileType,
-              size: fileSize,
-              data: base64
-            })
-          });
-        } catch (serverErr) {
-          console.warn('Server storage sync notice:', serverErr);
+        var remoteOk = false;
+        if (window.RizzDB && typeof window.RizzDB.uploadFile === 'function') {
+          try {
+            var fbRes = await window.RizzDB.uploadFile('assessment_files/' + key, blobOrFile);
+            if (fbRes && fbRes.downloadUrl) {
+              meta.storageUrl = fbRes.downloadUrl;
+              window._rizzStorageUrls = window._rizzStorageUrls || {};
+              window._rizzStorageUrls[key] = fbRes.downloadUrl;
+              remoteOk = true;
+            }
+          } catch (fbErr) {
+            console.warn('[RIZZ Firebase] Storage upload notice:', fbErr);
+          }
         }
 
-        return idbOk;
+        try {
+          var res = await fetch(getBackendApiUrl('/api/upload'), {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/octet-stream',
+              'x-file-key': key,
+              'x-file-name': encodeURIComponent(fileName),
+              'x-file-type': fileType,
+              'x-file-size': String(fileSize)
+            },
+            body: blobOrFile
+          });
+          if (res.ok) remoteOk = true;
+        } catch (serverErr) {
+          try {
+            var base64 = await this.blobToBase64(blobOrFile);
+            var jsonRes = await fetch(getBackendApiUrl('/api/upload'), {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                key: key,
+                name: fileName,
+                type: fileType,
+                size: fileSize,
+                data: base64
+              })
+            });
+            if (jsonRes.ok) remoteOk = true;
+          } catch (e) {}
+        }
+
+        return idbOk || remoteOk;
       },
       getFile: async function (key) {
         if (!key) return null;
+        if (typeof key === 'string' && key.startsWith('http')) {
+          try {
+            var directRes = await fetch(key);
+            if (directRes.ok) return await directRes.blob();
+          } catch (e) {}
+        }
         var db = await this.init();
         if (db) {
           var idbBlob = await new Promise(function (resolve) {
@@ -8986,6 +9022,24 @@
           if (idbBlob) return idbBlob;
         } else if (window._rizzMemoryFiles && window._rizzMemoryFiles[key]) {
           return window._rizzMemoryFiles[key].blob;
+        }
+
+        if (window._rizzStorageUrls && window._rizzStorageUrls[key]) {
+          try {
+            var fbRes = await fetch(window._rizzStorageUrls[key]);
+            if (fbRes.ok) return await fbRes.blob();
+          } catch (e) {}
+        }
+        if (window.RizzDB && typeof window.RizzDB.getFileDownloadUrl === 'function') {
+          try {
+            var fbUrl = await window.RizzDB.getFileDownloadUrl('assessment_files/' + key);
+            if (fbUrl) {
+              window._rizzStorageUrls = window._rizzStorageUrls || {};
+              window._rizzStorageUrls[key] = fbUrl;
+              var fbRes2 = await fetch(fbUrl);
+              if (fbRes2.ok) return await fbRes2.blob();
+            }
+          } catch (e) {}
         }
 
         try {
@@ -9013,6 +9067,7 @@
       },
       hasFile: async function (key) {
         if (!key) return false;
+        if (window._rizzStorageUrls && window._rizzStorageUrls[key]) return true;
         var blob = await this.getFile(key);
         return !!blob;
       },
@@ -9020,6 +9075,9 @@
         if (!key) return true;
         if (window._rizzMemoryFiles && window._rizzMemoryFiles[key]) {
           delete window._rizzMemoryFiles[key];
+        }
+        if (window._rizzStorageUrls && window._rizzStorageUrls[key]) {
+          delete window._rizzStorageUrls[key];
         }
         var db = await this.init();
         if (db) {
@@ -9041,14 +9099,26 @@
         return true;
       },
       getFileUrl: async function (key) {
+        if (!key) return null;
+        if (typeof key === 'string' && key.startsWith('http')) return key;
+        if (window._rizzStorageUrls && window._rizzStorageUrls[key]) return window._rizzStorageUrls[key];
         var blob = await this.getFile(key);
         if (!blob) return null;
         return URL.createObjectURL(blob);
       },
       downloadFile: async function (key, defaultFileName) {
+        if (window._rizzStorageUrls && window._rizzStorageUrls[key]) {
+          var directA = document.createElement('a');
+          directA.href = window._rizzStorageUrls[key];
+          directA.target = '_blank';
+          directA.download = defaultFileName || 'download';
+          document.body.appendChild(directA);
+          directA.click();
+          setTimeout(function () { document.body.removeChild(directA); }, 120);
+          return;
+        }
         var blob = await this.getFile(key);
         if (!blob) {
-          /* Fallback generator for demo asset / sample files */
           var sampleContent = 'RIZZ Practical Assessment Asset Package / Deliverable Payload: ' + (defaultFileName || 'file');
           blob = new Blob([sampleContent], { type: 'application/octet-stream' });
         }

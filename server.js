@@ -157,7 +157,7 @@ const server = http.createServer((req, res) => {
       parseJsonBody(req).then(payload => {
         let attempts = readJsonFile('assessment_attempts.json', {});
         if (payload.attemptsMap && typeof payload.attemptsMap === 'object') {
-          attempts = payload.attemptsMap;
+          attempts = Object.assign({}, attempts, payload.attemptsMap);
         }
         if (payload.studentId && payload.record) {
           attempts[payload.studentId] = payload.record;
@@ -470,6 +470,53 @@ const server = http.createServer((req, res) => {
   ───────────────────────────────────────────────────────────── */
   if (pathname === '/api/upload' && req.method === 'POST') {
     setCors();
+    const contentType = (req.headers['content-type'] || '').toLowerCase();
+
+    // Direct streaming binary upload
+    if (contentType.includes('application/octet-stream') || req.headers['x-file-key']) {
+      const rawKey = req.headers['x-file-key'] || ('file_' + Date.now());
+      const safeKey = sanitizeKey(rawKey);
+      const targetPath = path.join(UPLOADS_DIR, safeKey);
+      const metaPath = path.join(UPLOADS_DIR, safeKey + '.meta.json');
+      const fileName = decodeURIComponent(req.headers['x-file-name'] || safeKey);
+      const fileType = req.headers['x-file-type'] || 'application/octet-stream';
+      const declaredSize = parseInt(req.headers['x-file-size'] || '0', 10);
+
+      const writeStream = fs.createWriteStream(targetPath);
+      let bytesWritten = 0;
+      req.on('data', chunk => { bytesWritten += chunk.length; });
+      req.pipe(writeStream);
+
+      writeStream.on('finish', () => {
+        try {
+          fs.writeFileSync(metaPath, JSON.stringify({
+            key: safeKey,
+            name: fileName,
+            type: fileType,
+            size: bytesWritten || declaredSize,
+            uploadedAt: new Date().toISOString()
+          }));
+          res.writeHead(200, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({
+            success: true,
+            key: safeKey,
+            url: `/api/files/${safeKey}`,
+            size: bytesWritten
+          }));
+        } catch (err) {
+          res.writeHead(500, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ error: 'Failed saving metadata: ' + err.message }));
+        }
+      });
+
+      writeStream.on('error', err => {
+        res.writeHead(500, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: 'Stream write error: ' + err.message }));
+      });
+      return;
+    }
+
+    // Fallback JSON base64 upload
     let bodyChunks = [];
     req.on('data', chunk => bodyChunks.push(chunk));
     req.on('end', () => {

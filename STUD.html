@@ -29,6 +29,7 @@
   <!-- Firebase App & Realtime Database SDKs (Compat v9) -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
   <!-- Firebase Project Configuration & Realtime Sync Layer -->
   <script src="firebase-config.js"></script>
   <script>
@@ -6439,28 +6440,66 @@ The score must be between 0 and the maximum marks assigned to the question.`;
           idbOk = true;
         }
 
-        // Dual-persistence to server disk storage
-        try {
-          var base64 = await this.blobToBase64(blobOrFile);
-          await fetch(getBackendApiUrl('/api/upload'), {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              key: key,
-              name: fileName,
-              type: fileType,
-              size: fileSize,
-              data: base64
-            })
-          });
-        } catch (serverErr) {
-          console.warn('Server storage sync notice:', serverErr);
+        // 1. Firebase Storage Direct Upload
+        var remoteOk = false;
+        if (window.RizzDB && typeof window.RizzDB.uploadFile === 'function') {
+          try {
+            var fbRes = await window.RizzDB.uploadFile('assessment_files/' + key, blobOrFile);
+            if (fbRes && fbRes.downloadUrl) {
+              meta.storageUrl = fbRes.downloadUrl;
+              window._rizzStorageUrls = window._rizzStorageUrls || {};
+              window._rizzStorageUrls[key] = fbRes.downloadUrl;
+              remoteOk = true;
+            }
+          } catch (fbErr) {
+            console.warn('[RIZZ Firebase] Storage upload notice:', fbErr);
+          }
         }
 
-        return idbOk;
+        // 2. Dual-persistence to server disk storage via direct binary stream
+        try {
+          var res = await fetch(getBackendApiUrl('/api/upload'), {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/octet-stream',
+              'x-file-key': key,
+              'x-file-name': encodeURIComponent(fileName),
+              'x-file-type': fileType,
+              'x-file-size': String(fileSize)
+            },
+            body: blobOrFile
+          });
+          if (res.ok) {
+            remoteOk = true;
+          }
+        } catch (serverErr) {
+          try {
+            var base64 = await this.blobToBase64(blobOrFile);
+            var jsonRes = await fetch(getBackendApiUrl('/api/upload'), {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                key: key,
+                name: fileName,
+                type: fileType,
+                size: fileSize,
+                data: base64
+              })
+            });
+            if (jsonRes.ok) remoteOk = true;
+          } catch (e) {}
+        }
+
+        return idbOk || remoteOk;
       },
       getFile: async function (key) {
         if (!key) return null;
+        if (typeof key === 'string' && key.startsWith('http')) {
+          try {
+            var directRes = await fetch(key);
+            if (directRes.ok) return await directRes.blob();
+          } catch (e) {}
+        }
         var db = await this.init();
         if (db) {
           var idbBlob = await new Promise(function (resolve) {
@@ -6480,6 +6519,25 @@ The score must be between 0 and the maximum marks assigned to the question.`;
           if (idbBlob) return idbBlob;
         } else if (window._rizzMemoryFiles && window._rizzMemoryFiles[key]) {
           return window._rizzMemoryFiles[key].blob;
+        }
+
+        // Firebase Storage URL lookup
+        if (window._rizzStorageUrls && window._rizzStorageUrls[key]) {
+          try {
+            var fbRes = await fetch(window._rizzStorageUrls[key]);
+            if (fbRes.ok) return await fbRes.blob();
+          } catch (e) {}
+        }
+        if (window.RizzDB && typeof window.RizzDB.getFileDownloadUrl === 'function') {
+          try {
+            var fbUrl = await window.RizzDB.getFileDownloadUrl('assessment_files/' + key);
+            if (fbUrl) {
+              window._rizzStorageUrls = window._rizzStorageUrls || {};
+              window._rizzStorageUrls[key] = fbUrl;
+              var fbRes2 = await fetch(fbUrl);
+              if (fbRes2.ok) return await fbRes2.blob();
+            }
+          } catch (e) {}
         }
 
         // Fallback to local server disk storage
@@ -6508,15 +6566,29 @@ The score must be between 0 and the maximum marks assigned to the question.`;
       },
       hasFile: async function (key) {
         if (!key) return false;
+        if (window._rizzStorageUrls && window._rizzStorageUrls[key]) return true;
         var blob = await this.getFile(key);
         return !!blob;
       },
       getFileUrl: async function (key) {
+        if (!key) return null;
+        if (typeof key === 'string' && key.startsWith('http')) return key;
+        if (window._rizzStorageUrls && window._rizzStorageUrls[key]) return window._rizzStorageUrls[key];
         var blob = await this.getFile(key);
         if (!blob) return null;
         return URL.createObjectURL(blob);
       },
       downloadFile: async function (key, defaultFileName) {
+        if (window._rizzStorageUrls && window._rizzStorageUrls[key]) {
+          var directA = document.createElement('a');
+          directA.href = window._rizzStorageUrls[key];
+          directA.target = '_blank';
+          directA.download = defaultFileName || 'download';
+          document.body.appendChild(directA);
+          directA.click();
+          setTimeout(function () { document.body.removeChild(directA); }, 120);
+          return;
+        }
         var blob = await this.getFile(key);
         if (!blob) {
           var sampleContent = 'RIZZ Practical Assessment Deliverable Payload: ' + (defaultFileName || 'file');
@@ -6538,6 +6610,9 @@ The score must be between 0 and the maximum marks assigned to the question.`;
         if (window._rizzMemoryFiles && window._rizzMemoryFiles[key]) {
           delete window._rizzMemoryFiles[key];
         }
+        if (window._rizzStorageUrls && window._rizzStorageUrls[key]) {
+          delete window._rizzStorageUrls[key];
+        }
         var db = await this.init();
         if (db) {
           await new Promise(function (resolve) {
@@ -6552,7 +6627,6 @@ The score must be between 0 and the maximum marks assigned to the question.`;
             }
           });
         }
-        // Also delete from server disk storage
         try {
           await fetch(getBackendApiUrl('/api/files/' + encodeURIComponent(key)), { method: 'DELETE' });
         } catch (e) {}
@@ -6605,19 +6679,44 @@ The score must be between 0 and the maximum marks assigned to the question.`;
       }
     }
 
-    function saveAssessmentAttempts(data) {
+    async function saveAssessmentAttempts(data) {
       try {
         localStorage.setItem(LS_ASSESSMENT_ATTEMPTS, JSON.stringify(data));
       } catch (e) {
         console.error('Error saving assessment attempts:', e);
       }
+      const uId = (currentUser && currentUser.userId) || 'STUD-001';
+      const promises = [];
+
+      // 1. Firebase Realtime Database persistence
+      if (window.RizzDB) {
+        const studentRecord = (data && data[uId]) ? data[uId] : (data && data.studentId === uId ? data : null);
+        if (studentRecord && typeof window.RizzDB.saveAssessmentAttempt === 'function') {
+          promises.push(window.RizzDB.saveAssessmentAttempt(uId, studentRecord));
+        }
+        if (typeof window.RizzDB.saveAssessmentAttempts === 'function') {
+          promises.push(window.RizzDB.saveAssessmentAttempts(data));
+        }
+      }
+
+      // 2. Local/Remote server persistence
       try {
-        fetch(getBackendApiUrl('/api/assessment/attempts'), {
+        const fetchPromise = fetch(getBackendApiUrl('/api/assessment/attempts'), {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ attemptsMap: data })
-        }).catch(function () {});
+          body: JSON.stringify({ attemptsMap: data, studentId: uId, record: (data ? data[uId] : null) })
+        }).catch(function (err) {
+          console.warn('Server assessment save notice:', err);
+        });
+        promises.push(fetchPromise);
       } catch (e) {}
+
+      if (promises.length > 0) {
+        try {
+          await Promise.all(promises);
+        } catch (e) {}
+      }
+      return true;
     }
 
     let activeAsmTimerInterval = null;
@@ -8532,8 +8631,9 @@ The score must be between 0 and the maximum marks assigned to the question.`;
               </div>
             `;
           } else {
-            const fileObj = sub[d] || {};
-            const fileName = fileObj.fileName || (d + '.bin');
+            const fileObj = sub[d];
+            const isAttached = !!(fileObj && fileObj.fileKey);
+            const fileName = isAttached ? (fileObj.fileName || (d + '.bin')) : (sub.finalPng ? sub.finalPng.fileName : 'Not Uploaded');
             const sizeStr = fileObj.fileSize ? ((fileObj.fileSize / 1024 / 1024).toFixed(2) + ' MB') : '';
             const durStr = fileObj.durationSeconds ? (fileObj.durationSeconds + 's duration') : '';
             const metaStr = [sizeStr, durStr].filter(Boolean).join(' • ');
@@ -8664,7 +8764,7 @@ The score must be between 0 and the maximum marks assigned to the question.`;
 
         // 4. Save to assessment attempts store
         sAttempts.attempts = attemptsList;
-        saveAssessmentAttempts(attemptsMap);
+        await saveAssessmentAttempts(attemptsMap);
 
         // 5. Update student progress
         try {
@@ -8673,6 +8773,9 @@ The score must be between 0 and the maximum marks assigned to the question.`;
           prog.assessmentStatus = 'submitted';
           prog.overallProgress = Math.max(prog.overallProgress || 0, 60);
           localStorage.setItem(progKey, JSON.stringify(prog));
+          if (window.RizzDB && typeof window.RizzDB.saveProgress === 'function') {
+            try { await window.RizzDB.saveProgress(userId, prog); } catch (e) {}
+          }
         } catch (e) {
           console.error('Error updating progress:', e);
         }
@@ -9807,9 +9910,23 @@ The score must be between 0 and the maximum marks assigned to the question.`;
       if (!asm || typeof asm !== 'object') return;
       const uId = (currentUser && currentUser.userId) || 'STUD-001';
       const attemptsMap = loadAssessmentAttempts();
-      attemptsMap[uId] = asm;
+      if (asm.attempts && Array.isArray(asm.attempts)) {
+        attemptsMap[uId] = asm;
+      } else if (asm.attemptId) {
+        if (!attemptsMap[uId]) {
+          attemptsMap[uId] = { studentId: uId, attempts: [] };
+        }
+        const list = attemptsMap[uId].attempts || [];
+        const idx = list.findIndex(function (a) { return a.attemptId === asm.attemptId; });
+        if (idx >= 0) list[idx] = asm;
+        else list.push(asm);
+        attemptsMap[uId].attempts = list;
+        attemptsMap[uId].activeAttemptId = asm.attemptId;
+      } else {
+        attemptsMap[uId] = asm;
+      }
       if (asm.studentId && asm.studentId !== uId) {
-        attemptsMap[asm.studentId] = asm;
+        attemptsMap[asm.studentId] = attemptsMap[uId];
       }
       localStorage.setItem(LS_ASSESSMENT_ATTEMPTS, JSON.stringify(attemptsMap));
       syncWorkshopNavAndJourney();
@@ -9842,8 +9959,17 @@ The score must be between 0 and the maximum marks assigned to the question.`;
 
         // 2. Assessment attempts
         if (data.assessmentAttempts && typeof data.assessmentAttempts === 'object') {
+          const uId = (currentUser && currentUser.userId) || 'STUD-001';
+          let localMap = {};
+          try { localMap = JSON.parse(localStorage.getItem(LS_ASSESSMENT_ATTEMPTS) || '{}'); } catch (e) {}
+          const localStudentObj = localMap[uId];
+          const merged = Object.assign({}, data.assessmentAttempts);
+          // Protect local submitted / in-progress attempt from being overwritten by an empty or cold server response
+          if (localStudentObj && (!merged[uId] || (localStudentObj.attempts && localStudentObj.attempts.length > (merged[uId].attempts ? merged[uId].attempts.length : 0)))) {
+            merged[uId] = localStudentObj;
+          }
           const prevAsm = localStorage.getItem(LS_ASSESSMENT_ATTEMPTS) || '{}';
-          const freshAsm = JSON.stringify(data.assessmentAttempts);
+          const freshAsm = JSON.stringify(merged);
           if (prevAsm !== freshAsm) {
             localStorage.setItem(LS_ASSESSMENT_ATTEMPTS, freshAsm);
           }

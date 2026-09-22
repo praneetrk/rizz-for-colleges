@@ -26,6 +26,7 @@
   <!-- Firebase App & Realtime Database SDKs (Compat v9) -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
   <!-- Firebase Project Configuration & Realtime Sync Layer -->
   <script src="firebase-config.js"></script>
 
@@ -2652,27 +2653,62 @@
           idbOk = true;
         }
 
-        try {
-          var base64 = await this.blobToBase64(blobOrFile);
-          await fetch(getBackendApiUrl('/api/upload'), {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              key: key,
-              name: fileName,
-              type: fileType,
-              size: fileSize,
-              data: base64
-            })
-          });
-        } catch (serverErr) {
-          console.warn('Server storage sync notice:', serverErr);
+        var remoteOk = false;
+        if (window.RizzDB && typeof window.RizzDB.uploadFile === 'function') {
+          try {
+            var fbRes = await window.RizzDB.uploadFile('assessment_files/' + key, blobOrFile);
+            if (fbRes && fbRes.downloadUrl) {
+              meta.storageUrl = fbRes.downloadUrl;
+              window._rizzStorageUrls = window._rizzStorageUrls || {};
+              window._rizzStorageUrls[key] = fbRes.downloadUrl;
+              remoteOk = true;
+            }
+          } catch (fbErr) {
+            console.warn('[RIZZ Firebase] Storage upload notice:', fbErr);
+          }
         }
 
-        return idbOk;
+        try {
+          var res = await fetch(getBackendApiUrl('/api/upload'), {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/octet-stream',
+              'x-file-key': key,
+              'x-file-name': encodeURIComponent(fileName),
+              'x-file-type': fileType,
+              'x-file-size': String(fileSize)
+            },
+            body: blobOrFile
+          });
+          if (res.ok) remoteOk = true;
+        } catch (serverErr) {
+          try {
+            var base64 = await this.blobToBase64(blobOrFile);
+            var jsonRes = await fetch(getBackendApiUrl('/api/upload'), {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                key: key,
+                name: fileName,
+                type: fileType,
+                size: fileSize,
+                data: base64
+              })
+            });
+            if (jsonRes.ok) remoteOk = true;
+          } catch (e) {}
+        }
+
+        return idbOk || remoteOk;
       },
       getFile: async function (key) {
         if (!key) return null;
+        if (typeof key === 'string' && key.startsWith('http')) {
+          try {
+            var directRes = await fetch(key);
+            if (directRes.ok) return await directRes.blob();
+          } catch (e) {}
+        }
         var db = await this.init();
         if (db) {
           var idbBlob = await new Promise(function (resolve) {
@@ -2692,6 +2728,24 @@
           if (idbBlob) return idbBlob;
         } else if (window._rizzMemoryFiles && window._rizzMemoryFiles[key]) {
           return window._rizzMemoryFiles[key].blob;
+        }
+
+        if (window._rizzStorageUrls && window._rizzStorageUrls[key]) {
+          try {
+            var fbRes = await fetch(window._rizzStorageUrls[key]);
+            if (fbRes.ok) return await fbRes.blob();
+          } catch (e) {}
+        }
+        if (window.RizzDB && typeof window.RizzDB.getFileDownloadUrl === 'function') {
+          try {
+            var fbUrl = await window.RizzDB.getFileDownloadUrl('assessment_files/' + key);
+            if (fbUrl) {
+              window._rizzStorageUrls = window._rizzStorageUrls || {};
+              window._rizzStorageUrls[key] = fbUrl;
+              var fbRes2 = await fetch(fbUrl);
+              if (fbRes2.ok) return await fbRes2.blob();
+            }
+          } catch (e) {}
         }
 
         try {
@@ -2719,35 +2773,17 @@
       },
       hasFile: async function (key) {
         if (!key) return false;
+        if (window._rizzStorageUrls && window._rizzStorageUrls[key]) return true;
         var blob = await this.getFile(key);
         return !!blob;
-      },
-      getFileUrl: async function (key) {
-        var blob = await this.getFile(key);
-        if (!blob) return null;
-        return URL.createObjectURL(blob);
-      },
-      downloadFile: async function (key, defaultFileName) {
-        var blob = await this.getFile(key);
-        if (!blob) {
-          var sampleContent = 'RIZZ Practical Assessment Deliverable Payload: ' + (defaultFileName || 'file');
-          blob = new Blob([sampleContent], { type: 'application/octet-stream' });
-        }
-        var url = URL.createObjectURL(blob);
-        var a = document.createElement('a');
-        a.href = url;
-        a.download = defaultFileName || 'download';
-        document.body.appendChild(a);
-        a.click();
-        setTimeout(function () {
-          document.body.removeChild(a);
-          URL.revokeObjectURL(url);
-        }, 120);
       },
       deleteFile: async function (key) {
         if (!key) return true;
         if (window._rizzMemoryFiles && window._rizzMemoryFiles[key]) {
           delete window._rizzMemoryFiles[key];
+        }
+        if (window._rizzStorageUrls && window._rizzStorageUrls[key]) {
+          delete window._rizzStorageUrls[key];
         }
         var db = await this.init();
         if (db) {
@@ -2767,6 +2803,41 @@
           await fetch(getBackendApiUrl('/api/files/' + encodeURIComponent(key)), { method: 'DELETE' });
         } catch (e) {}
         return true;
+      },
+      getFileUrl: async function (key) {
+        if (!key) return null;
+        if (typeof key === 'string' && key.startsWith('http')) return key;
+        if (window._rizzStorageUrls && window._rizzStorageUrls[key]) return window._rizzStorageUrls[key];
+        var blob = await this.getFile(key);
+        if (!blob) return null;
+        return URL.createObjectURL(blob);
+      },
+      downloadFile: async function (key, defaultFileName) {
+        if (window._rizzStorageUrls && window._rizzStorageUrls[key]) {
+          var directA = document.createElement('a');
+          directA.href = window._rizzStorageUrls[key];
+          directA.target = '_blank';
+          directA.download = defaultFileName || 'download';
+          document.body.appendChild(directA);
+          directA.click();
+          setTimeout(function () { document.body.removeChild(directA); }, 120);
+          return;
+        }
+        var blob = await this.getFile(key);
+        if (!blob) {
+          var sampleContent = 'RIZZ Practical Assessment Deliverable Payload: ' + (defaultFileName || 'file');
+          blob = new Blob([sampleContent], { type: 'application/octet-stream' });
+        }
+        var url = URL.createObjectURL(blob);
+        var a = document.createElement('a');
+        a.href = url;
+        a.download = defaultFileName || 'download';
+        document.body.appendChild(a);
+        a.click();
+        setTimeout(function () {
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+        }, 120);
       }
     };
     window.RizzFileStore = RizzFileStore;

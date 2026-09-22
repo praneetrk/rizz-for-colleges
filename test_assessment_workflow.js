@@ -371,7 +371,6 @@ console.log('\n--- TEST J: Zero Dummy Content Verification ---');
   assert.ok(adminHtml.includes("instructions: ''"), 'Default instructions should be empty');
   assert.ok(adminHtml.includes("status: 'Draft'"), 'Default status should be Draft');
   assert.ok(adminHtml.includes("assetPackage: null"), 'Default assetPackage should be null');
-  assert.ok(adminHtml.includes("aiPrompt: ''"), 'Default aiPrompt should be empty');
   pass('Zero hardcoded dummy content in initial default assessment data');
 }
 

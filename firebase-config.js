@@ -60,6 +60,26 @@ window.RIZZ_FIREBASE_CONFIG = {
     }
   }
 
+  let storageInstance = null;
+  function initStorage() {
+    if (storageInstance) return storageInstance;
+    if (typeof firebase === 'undefined' || typeof firebase.storage !== 'function') {
+      return null;
+    }
+    const cfg = window.RIZZ_FIREBASE_CONFIG || {};
+    if (!isConfigured()) return null;
+    try {
+      if (!firebase.apps.length) {
+        firebase.initializeApp(cfg);
+      }
+      storageInstance = firebase.storage();
+      return storageInstance;
+    } catch (err) {
+      console.warn('[RIZZ Firebase] Storage init error:', err);
+      return null;
+    }
+  }
+
   // Safe ref helper
   function getRef(path) {
     const db = initDb();
@@ -320,17 +340,36 @@ window.RIZZ_FIREBASE_CONFIG = {
        5. PRACTICAL ASSESSMENTS & WORKSHOPS
     ───────────────────────────────────────────────────────────── */
     saveAssessmentAttempt: async function (studentId, attemptRecord) {
-      if (!studentId || !attemptRecord) return;
+      if (!studentId || !attemptRecord) return false;
       const cleanId = String(studentId).replace(/[.#$\[\]\/]/g, '_');
       const ref = getRef('assessmentAttempts/' + cleanId);
       if (ref) {
         try {
           await ref.set(attemptRecord);
           console.log('[RIZZ Firebase] Assessment attempt saved to /assessmentAttempts/' + cleanId);
+          return true;
         } catch (e) {
           console.warn('[RIZZ Firebase] Error saving assessment attempt:', e);
+          return false;
         }
       }
+      return false;
+    },
+
+    saveAssessmentAttempts: async function (attemptsMap) {
+      if (!attemptsMap || typeof attemptsMap !== 'object') return false;
+      const ref = getRef('assessmentAttempts');
+      if (ref) {
+        try {
+          await ref.set(attemptsMap);
+          console.log('[RIZZ Firebase] Full assessment attempts map saved to /assessmentAttempts');
+          return true;
+        } catch (e) {
+          console.warn('[RIZZ Firebase] Error saving assessment attempts map:', e);
+          return false;
+        }
+      }
+      return false;
     },
 
     getAssessmentAttempt: async function (studentId) {
@@ -365,6 +404,54 @@ window.RIZZ_FIREBASE_CONFIG = {
         const val = snapshot.val() || {};
         if (typeof callback === 'function') callback(val);
       });
+    },
+
+    uploadFile: async function (storagePath, blobOrFile, onProgress) {
+      const storage = initStorage();
+      if (!storage) return null;
+      try {
+        const storageRef = storage.ref(storagePath);
+        const metadata = {
+          contentType: (blobOrFile && blobOrFile.type) || 'application/octet-stream'
+        };
+        if (typeof onProgress === 'function') {
+          const uploadTask = storageRef.put(blobOrFile, metadata);
+          return new Promise(function (resolve, reject) {
+            uploadTask.on('state_changed', function (snapshot) {
+              var progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+              onProgress(progress);
+            }, function (error) {
+              console.warn('[RIZZ Firebase] Storage upload error:', error);
+              reject(error);
+            }, async function () {
+              try {
+                var downloadUrl = await uploadTask.snapshot.ref.getDownloadURL();
+                resolve({ downloadUrl: downloadUrl, storagePath: storagePath });
+              } catch (err) {
+                reject(err);
+              }
+            });
+          });
+        } else {
+          const snapshot = await storageRef.put(blobOrFile, metadata);
+          const downloadUrl = await snapshot.ref.getDownloadURL();
+          return { downloadUrl: downloadUrl, storagePath: storagePath };
+        }
+      } catch (err) {
+        console.warn('[RIZZ Firebase] Storage upload failed:', err);
+        return null;
+      }
+    },
+
+    getFileDownloadUrl: async function (storagePath) {
+      const storage = initStorage();
+      if (!storage) return null;
+      try {
+        const storageRef = storage.ref(storagePath);
+        return await storageRef.getDownloadURL();
+      } catch (err) {
+        return null;
+      }
     },
 
     saveWorkshopCompletion: async function (topicId, completionData) {
