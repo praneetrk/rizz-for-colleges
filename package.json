@@ -1,0 +1,23 @@
+{
+  "name": "rizz-for-colleges",
+  "version": "1.0.0",
+  "description": "RIZZ for Colleges platform with deterministic Pre-Test evaluation & human assessment workflow",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js",
+    "test": "node test_deterministic_evaluation.js"
+  },
+  "keywords": [
+    "rizz",
+    "college",
+    "assessment",
+    "evaluation"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "dotenv": "^16.4.7",
+    "xlsx": "^0.18.5"
+  }
+}

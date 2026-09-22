@@ -1,0 +1,17 @@
+# Environment Variables (Secrets must NEVER be committed)
+.env
+.env.local
+.env.*.local
+
+# Node Dependencies
+node_modules/
+
+# User Binary Deliverables & Uploads
+uploads/*
+!uploads/*.json
+!uploads/.gitkeep
+
+# System & IDE logs
+*.log
+.DS_Store
+Thumbs.db

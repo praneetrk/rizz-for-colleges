@@ -1,0 +1,178 @@
+{
+  "categories": [
+    {
+      "id": "production",
+      "name": "Production",
+      "description": "Designing, video editing, cinematography, creative direction & production arts.",
+      "icon": "fa-solid fa-pen-ruler",
+      "subsets": [
+        {
+          "id": "sub_designing",
+          "name": "Designing",
+          "description": "Graphic design, visual branding, Figma, Adobe Illustrator and layout systems.",
+          "topics": [
+            {
+              "id": "top_prod_design_1",
+              "name": "Graphic Designing & Brand Identity",
+              "description": "Color Theory, Grid Systems, Figma, Adobe Illustrator layout",
+              "mentor": "Rohan Verma",
+              "hours": 3,
+              "date": "2026-10-14"
+            }
+          ]
+        },
+        {
+          "id": "sub_videoediting",
+          "name": "Video Editing",
+          "description": "High-retention video editing, pacing, motion captions and DaVinci Resolve.",
+          "topics": [
+            {
+              "id": "top_prod_video_1",
+              "name": "High-Retention Video Editing",
+              "description": "Timeline Pacing, Audio Ducking, Motion Captions, DaVinci Resolve",
+              "mentor": "Priya Nair",
+              "hours": 3,
+              "date": "2026-10-21"
+            }
+          ]
+        },
+        {
+          "id": "sub_cinematography",
+          "name": "Cinematography",
+          "description": "Narrative cinematography, lighting, camera framing and exposure.",
+          "topics": [
+            {
+              "id": "top_prod_cine_1",
+              "name": "Narrative Cinematography & Lighting",
+              "description": "3-Point Lighting, Camera Framing, Aperture & Exposure, BTS Logs",
+              "mentor": "Vikramaditya Singh",
+              "hours": 4,
+              "date": "2026-10-28"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "strategy",
+      "name": "Strategy",
+      "description": "Business analysis, consulting frameworks, competitive market expansion & strategic planning.",
+      "icon": "fa-solid fa-chess",
+      "subsets": [
+        {
+          "id": "sub_socialmedia",
+          "name": "Social Media Management",
+          "description": "Social media strategy, Instagram funnels, content calendars and analytics.",
+          "topics": [
+            {
+              "id": "top_strat_smm_1",
+              "name": "Social Media Strategy & SMM Systems",
+              "description": "Instagram Funnels, Content Calendars, Community Hooks, Analytics",
+              "mentor": "Meera Kapoor",
+              "hours": "3",
+              "date": "2026-11-04"
+            }
+          ]
+        },
+        {
+          "id": "sub_contentwriting",
+          "name": "Content Writing",
+          "description": "Content writing for D2C brands, ad copy, landing page copy and brand voice.",
+          "topics": [
+            {
+              "id": "top_strat_cw_1",
+              "name": "Content Writing for D2C Brands",
+              "description": "Landing Page Copy, Ad Scripts, Email Sequences, Brand Voice",
+              "mentor": "Arjun Menon",
+              "hours": "3",
+              "date": "2026-11-11"
+            }
+          ]
+        },
+        {
+          "id": "sub_perfmarketing",
+          "name": "Performance Marketing",
+          "description": "Performance marketing, Meta ads, CAC basics and creative testing.",
+          "topics": [
+            {
+              "id": "top_strat_perf_1",
+              "name": "Performance Marketing & Campaign Execution",
+              "description": "Meta Ads, Creative Testing, CAC Basics",
+              "mentor": "Nisha Bansal",
+              "hours": "4",
+              "date": "2026-11-18"
+            }
+          ]
+        },
+        {
+          "id": "sub_marketingstrategy",
+          "name": "Marketing Strategy",
+          "description": "Business strategy sprint, market expansion and client communication.",
+          "topics": [
+            {
+              "id": "top_strat_ms_1",
+              "name": "Business Strategy Sprint & Client Communication",
+              "description": "Competitive Positioning, Growth Sprints, Client Communication",
+              "mentor": "Nisha Bansal",
+              "hours": "4",
+              "date": "2026-11-18"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "tech",
+      "name": "Tech",
+      "description": "Full-stack engineering, cloud architecture, system design, databases & emerging technologies.",
+      "icon": "fa-solid fa-microchip",
+      "subsets": [
+        {
+          "id": "sub_webdev",
+          "name": "Website Development",
+          "description": "Web development for creative portfolios, HTML/CSS and responsive UI.",
+          "topics": [
+            {
+              "id": "top_tech_web_1",
+              "name": "Web Dev for Creative Portfolios",
+              "description": "HTML/CSS, Landing Pages, Responsive UI, Portfolio Hosting",
+              "mentor": "Devika Rao",
+              "hours": "3",
+              "date": "2026-12-02"
+            }
+          ]
+        },
+        {
+          "id": "sub_ai",
+          "name": "AI & Automation",
+          "description": "AI automation workflows, prompt systems and content automation.",
+          "topics": [
+            {
+              "id": "top_tech_ai_1",
+              "name": "AI Automation for Campus Creators",
+              "description": "Prompt Systems, Zapier Flows, Lead Capture, Content Automation",
+              "mentor": "Kabir Sethi",
+              "hours": "3",
+              "date": "2026-12-09"
+            }
+          ]
+        },
+        {
+          "id": "sub_seo",
+          "name": "SEO, AEO & GEO (Content-Led)",
+          "description": "Search engine optimization, generative engine optimization, Airtable and Notion ops.",
+          "topics": [
+            {
+              "id": "top_tech_seo_1",
+              "name": "No-Code Business Systems & GEO Search Optimization",
+              "description": "Airtable, Notion Ops, CRM Basics, Dashboard Thinking, Search Engine Optimization",
+              "mentor": "Tanya Iyer",
+              "hours": "4",
+              "date": "2026-12-16"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

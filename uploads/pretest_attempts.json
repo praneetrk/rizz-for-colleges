@@ -1,0 +1,1128 @@
+{
+  "CBALC-003": {
+    "attemptId": "ATT-CBALC-003-1790000113884",
+    "college": "CBALC",
+    "email": "stu5@edu.in",
+    "endTime": 1790003713884,
+    "paperSeries": "B",
+    "published": false,
+    "questionsSnapshot": [
+      {
+        "correctAnswer": "B",
+        "id": "q_b_p1",
+        "internalTrack": "production",
+        "marks": 1,
+        "options": {
+          "A": "1/24 sec",
+          "B": "1/48 sec (180-degree shutter rule)",
+          "C": "1/250 sec",
+          "D": "1/10 sec"
+        },
+        "order": 1,
+        "questionId": "q_b_p1",
+        "questionText": "Which camera shutter speed rule is standard in cinematic filmmaking for natural motion blur at 24 frames per second?",
+        "rubric": "",
+        "series": "B",
+        "text": "Which camera shutter speed rule is standard in cinematic filmmaking for natural motion blur at 24 frames per second?",
+        "track": "production",
+        "type": "mcq"
+      },
+      {
+        "correctAnswer": "B",
+        "id": "q_b_p2",
+        "internalTrack": "production",
+        "marks": 1,
+        "options": {
+          "A": "CMYK for screens, RGB for print",
+          "B": "RGB for screens, CMYK for print",
+          "C": "Pantone for screens, Hex for print",
+          "D": "Grayscale for both"
+        },
+        "order": 2,
+        "questionId": "q_b_p2",
+        "questionText": "In digital graphic design, what color space is standard for digital screens versus commercial offset print?",
+        "rubric": "",
+        "series": "B",
+        "text": "In digital graphic design, what color space is standard for digital screens versus commercial offset print?",
+        "track": "production",
+        "type": "mcq"
+      },
+      {
+        "correctAnswer": "B",
+        "id": "q_b_p3",
+        "internalTrack": "production",
+        "marks": 1,
+        "options": {
+          "A": "Generating automatic closed captions",
+          "B": "Mapping and transforming color values and creative film grading looks across clips",
+          "C": "Setting audio equalizer frequencies",
+          "D": "Exporting subtitle tracks"
+        },
+        "order": 3,
+        "questionId": "q_b_p3",
+        "questionText": "In professional video color grading, what is the primary function of a 3D LUT (Lookup Table)?",
+        "rubric": "",
+        "series": "B",
+        "text": "In professional video color grading, what is the primary function of a 3D LUT (Lookup Table)?",
+        "track": "production",
+        "type": "mcq"
+      },
+      {
+        "correctAnswer": "A",
+        "id": "q_b_p4",
+        "internalTrack": "production",
+        "marks": 1,
+        "options": {
+          "A": "f/1.4",
+          "B": "f/8.0",
+          "C": "f/16",
+          "D": "f/22"
+        },
+        "order": 4,
+        "questionId": "q_b_p4",
+        "questionText": "In cinematography, what lens aperture setting creates the shallowest depth of field (blurred background bokeh)?",
+        "rubric": "",
+        "series": "B",
+        "text": "In cinematography, what lens aperture setting creates the shallowest depth of field (blurred background bokeh)?",
+        "track": "production",
+        "type": "mcq"
+      },
+      {
+        "correctAnswer": "A",
+        "id": "q_b_p5",
+        "internalTrack": "production",
+        "marks": 1,
+        "options": {
+          "A": "The vertical distance between baselines of consecutive lines of text",
+          "B": "The slant angle of italic text",
+          "C": "The width of font characters",
+          "D": "The space between two letters"
+        },
+        "order": 5,
+        "questionId": "q_b_p5",
+        "questionText": "In typography and layout, what does \"Leading\" (line-height) control?",
+        "rubric": "",
+        "series": "B",
+        "text": "In typography and layout, what does \"Leading\" (line-height) control?",
+        "track": "production",
+        "type": "mcq"
+      },
+      {
+        "correctAnswer": "A",
+        "id": "q_b_p6",
+        "internalTrack": "production",
+        "marks": 1,
+        "options": {
+          "A": "Match Cut / Cut on Action",
+          "B": "Whip Pan",
+          "C": "Fade to Black",
+          "D": "Freeze Frame"
+        },
+        "order": 6,
+        "questionId": "q_b_p6",
+        "questionText": "In video editing, what type of cut transitions from an action in one shot to a matching action in another shot with seamless continuity?",
+        "rubric": "",
+        "series": "B",
+        "text": "In video editing, what type of cut transitions from an action in one shot to a matching action in another shot with seamless continuity?",
+        "track": "production",
+        "type": "mcq"
+      },
+      {
+        "correctAnswer": "C",
+        "id": "q_b_p7",
+        "internalTrack": "production",
+        "marks": 1,
+        "options": {
+          "A": "JPEG",
+          "B": "PNG",
+          "C": "SVG",
+          "D": "GIF"
+        },
+        "order": 7,
+        "questionId": "q_b_p7",
+        "questionText": "In graphic design, which vector file format allows lossy-free scaling to any resolution without pixelation?",
+        "rubric": "",
+        "series": "B",
+        "text": "In graphic design, which vector file format allows lossy-free scaling to any resolution without pixelation?",
+        "track": "production",
+        "type": "mcq"
+      },
+      {
+        "correctAnswer": "B",
+        "id": "q_b_s1",
+        "internalTrack": "strategy",
+        "marks": 1,
+        "options": {
+          "A": "Minimum Quality Level",
+          "B": "Marketing Qualified Lead",
+          "C": "Monthly Quota Limit",
+          "D": "Market Query Language"
+        },
+        "order": 8,
+        "questionId": "q_b_s1",
+        "questionText": "In a modern sales and marketing funnel, what does MQL stand for?",
+        "rubric": "",
+        "series": "B",
+        "text": "In a modern sales and marketing funnel, what does MQL stand for?",
+        "track": "strategy",
+        "type": "mcq"
+      },
+      {
+        "correctAnswer": "A",
+        "id": "q_b_s2",
+        "internalTrack": "strategy",
+        "marks": 1,
+        "options": {
+          "A": "Net Promoter Score (NPS)",
+          "B": "Cost Per Click (CPC)",
+          "C": "Burn Rate",
+          "D": "Return on Equity"
+        },
+        "order": 9,
+        "questionId": "q_b_s2",
+        "questionText": "Which customer feedback metric measures customer loyalty by asking how likely they are to recommend a product on a 0–10 scale?",
+        "rubric": "",
+        "series": "B",
+        "text": "Which customer feedback metric measures customer loyalty by asking how likely they are to recommend a product on a 0–10 scale?",
+        "track": "strategy",
+        "type": "mcq"
+      },
+      {
+        "correctAnswer": "B",
+        "id": "q_b_s3",
+        "internalTrack": "strategy",
+        "marks": 1,
+        "options": {
+          "A": "It directly determines server cooling requirements",
+          "B": "It proves genuine viewer engagement and content quality to algorithmic recommendation engines",
+          "C": "It eliminates the need for video tags",
+          "D": "It generates automatic translations"
+        },
+        "order": 10,
+        "questionId": "q_b_s3",
+        "questionText": "Why is audience average watch time / retention rate considered a more critical algorithmic signal for video platforms than simple likes?",
+        "rubric": "",
+        "series": "B",
+        "text": "Why is audience average watch time / retention rate considered a more critical algorithmic signal for video platforms than simple likes?",
+        "track": "strategy",
+        "type": "mcq"
+      },
+      {
+        "correctAnswer": "A",
+        "id": "q_b_s4",
+        "internalTrack": "strategy",
+        "marks": 1,
+        "options": {
+          "A": "(Total Clicks / Total Impressions) × 100",
+          "B": "(Total Conversions / Total Clicks) × 100",
+          "C": "Total Spend / Total Impressions",
+          "D": "Total Revenue / Total Ad Clicks"
+        },
+        "order": 11,
+        "questionId": "q_b_s4",
+        "questionText": "In digital advertising campaigns, what is the formula for Click-Through Rate (CTR)?",
+        "rubric": "",
+        "series": "B",
+        "text": "In digital advertising campaigns, what is the formula for Click-Through Rate (CTR)?",
+        "track": "strategy",
+        "type": "mcq"
+      },
+      {
+        "correctAnswer": "B",
+        "id": "q_b_s5",
+        "internalTrack": "strategy",
+        "marks": 1,
+        "options": {
+          "A": "Cold Calling",
+          "B": "Referral / Viral Loop Marketing",
+          "C": "Billboards",
+          "D": "TV Commercials"
+        },
+        "order": 12,
+        "questionId": "q_b_s5",
+        "questionText": "What type of marketing strategy relies on encouraging existing satisfied customers to refer new users in exchange for rewards or credits?",
+        "rubric": "",
+        "series": "B",
+        "text": "What type of marketing strategy relies on encouraging existing satisfied customers to refer new users in exchange for rewards or credits?",
+        "track": "strategy",
+        "type": "mcq"
+      },
+      {
+        "correctAnswer": "B",
+        "id": "q_b_s6",
+        "internalTrack": "strategy",
+        "marks": 1,
+        "options": {
+          "A": "Present company legal terms",
+          "B": "Stop the user from scrolling by sparking curiosity, emotion, or addressing a specific pain point",
+          "C": "Request five-star reviews immediately",
+          "D": "Provide contact email addresses"
+        },
+        "order": 13,
+        "questionId": "q_b_s6",
+        "questionText": "In content writing, what is the primary purpose of a \"Hook\" in the opening 3 seconds of a video or first sentence of an article?",
+        "rubric": "",
+        "series": "B",
+        "text": "In content writing, what is the primary purpose of a \"Hook\" in the opening 3 seconds of a video or first sentence of an article?",
+        "track": "strategy",
+        "type": "mcq"
+      },
+      {
+        "correctAnswer": "A",
+        "id": "q_b_s7",
+        "internalTrack": "strategy",
+        "marks": 1,
+        "options": {
+          "A": "Organic leverages non-paid content distribution and SEO, while paid relies on paid media spend and sponsored ad placements",
+          "B": "Organic only works on print flyers",
+          "C": "Paid marketing does not produce measurable metrics",
+          "D": "Organic marketing requires paid licenses"
+        },
+        "order": 14,
+        "questionId": "q_b_s7",
+        "questionText": "What is the primary difference between organic marketing and paid marketing?",
+        "rubric": "",
+        "series": "B",
+        "text": "What is the primary difference between organic marketing and paid marketing?",
+        "track": "strategy",
+        "type": "mcq"
+      },
+      {
+        "correctAnswer": "B",
+        "id": "q_b_t1",
+        "internalTrack": "tech",
+        "marks": 1,
+        "options": {
+          "A": "Faster DNS lookup",
+          "B": "Seamless fluid adaptation across diverse screen sizes, orientations, and responsive viewports",
+          "C": "Automated SQL query caching",
+          "D": "Reducing video file size"
+        },
+        "order": 15,
+        "questionId": "q_b_t1",
+        "questionText": "In modern responsive web design, what is the primary advantage of CSS Flexbox and CSS Grid over fixed pixel layouts?",
+        "rubric": "",
+        "series": "B",
+        "text": "In modern responsive web design, what is the primary advantage of CSS Flexbox and CSS Grid over fixed pixel layouts?",
+        "track": "tech",
+        "type": "mcq"
+      },
+      {
+        "correctAnswer": "B",
+        "id": "q_b_t2",
+        "internalTrack": "tech",
+        "marks": 1,
+        "options": {
+          "A": "White text on white background keyword stuffing",
+          "B": "Direct factual answers, clear structured markdown headings (H2/H3), schema markup, and verifiable citations",
+          "C": "Disabling robots.txt indexing",
+          "D": "Using iframe redirects"
+        },
+        "order": 16,
+        "questionId": "q_b_t2",
+        "questionText": "Which technique optimizes technical articles and web pages for Generative AI search engines (GEO / Perplexity / Gemini)?",
+        "rubric": "",
+        "series": "B",
+        "text": "Which technique optimizes technical articles and web pages for Generative AI search engines (GEO / Perplexity / Gemini)?",
+        "track": "tech",
+        "type": "mcq"
+      },
+      {
+        "correctAnswer": "B",
+        "id": "q_b_t3",
+        "internalTrack": "tech",
+        "marks": 1,
+        "options": {
+          "A": "It requires zero server resources",
+          "B": "Faster First Contentful Paint (FCP) and immediate pre-rendered HTML for search engine web crawlers",
+          "C": "Complete removal of all CSS files",
+          "D": "Offline database replication"
+        },
+        "order": 17,
+        "questionId": "q_b_t3",
+        "questionText": "What is the main performance benefit of Server-Side Rendering (SSR) compared to purely Client-Side Single Page Applications (CSR)?",
+        "rubric": "",
+        "series": "B",
+        "text": "What is the main performance benefit of Server-Side Rendering (SSR) compared to purely Client-Side Single Page Applications (CSR)?",
+        "track": "tech",
+        "type": "mcq"
+      },
+      {
+        "correctAnswer": "A",
+        "id": "q_b_t4",
+        "internalTrack": "tech",
+        "marks": 1,
+        "options": {
+          "A": "Handling non-blocking operations such as API network requests without freezing the browser UI thread",
+          "B": "Styling HTML buttons with gradient colors",
+          "C": "Compiling C++ code in WebAssembly",
+          "D": "Encrypting browser cookies"
+        },
+        "order": 18,
+        "questionId": "q_b_t4",
+        "questionText": "In JavaScript web development, what is an asynchronous function (async/await) used for?",
+        "rubric": "",
+        "series": "B",
+        "text": "In JavaScript web development, what is an asynchronous function (async/await) used for?",
+        "track": "tech",
+        "type": "mcq"
+      },
+      {
+        "correctAnswer": "B",
+        "id": "q_b_t5",
+        "internalTrack": "tech",
+        "marks": 1,
+        "options": {
+          "A": "Writing hardware drivers for GPUs",
+          "B": "Crafting structured, clear instructions, constraints, and few-shot examples to elicit accurate LLM outputs",
+          "C": "Setting up LAN cables",
+          "D": "Installing operating system patches"
+        },
+        "order": 19,
+        "questionId": "q_b_t5",
+        "questionText": "In AI agent engineering, what is the function of \"Prompt Engineering\"?",
+        "rubric": "",
+        "series": "B",
+        "text": "In AI agent engineering, what is the function of \"Prompt Engineering\"?",
+        "track": "tech",
+        "type": "mcq"
+      },
+      {
+        "correctAnswer": "A",
+        "id": "q_b_t6",
+        "internalTrack": "tech",
+        "marks": 1,
+        "options": {
+          "A": "JSON (JavaScript Object Notation)",
+          "B": "Binary BMP",
+          "C": "RTF",
+          "D": "Raw assembly text"
+        },
+        "order": 20,
+        "questionId": "q_b_t6",
+        "questionText": "What format is most commonly used for transmitting lightweight structured data between a web client and server APIs?",
+        "rubric": "",
+        "series": "B",
+        "text": "What format is most commonly used for transmitting lightweight structured data between a web client and server APIs?",
+        "track": "tech",
+        "type": "mcq"
+      },
+      {
+        "correctAnswer": "A",
+        "id": "q_b_t7",
+        "internalTrack": "tech",
+        "marks": 1,
+        "options": {
+          "A": "A function executed on globally distributed servers closest to the user's geographic location for minimal latency",
+          "B": "A hardware keyboard shortcut",
+          "C": "A CSS border effect",
+          "D": "A database table index"
+        },
+        "order": 21,
+        "questionId": "q_b_t7",
+        "questionText": "In modern cloud infrastructure and serverless architecture, what is an Edge Function?",
+        "rubric": "",
+        "series": "B",
+        "text": "In modern cloud infrastructure and serverless architecture, what is an Edge Function?",
+        "track": "tech",
+        "type": "mcq"
+      }
+    ],
+    "startTime": 1790000113884,
+    "status": "in_progress",
+    "studentId": "CBALC-003",
+    "studentName": "Ayush",
+    "warningCount": 1,
+    "warningEvents": [
+      {
+        "count": 1,
+        "reason": "Tab switched or minimized",
+        "timestamp": 1790005560177
+      }
+    ]
+  },
+  "JAIN-001": {
+    "answers": {
+      "q_a_p1": "C",
+      "q_a_p2": "C",
+      "q_a_p3": "C",
+      "q_a_p4": "C",
+      "q_a_p5": "C",
+      "q_a_p6": "A",
+      "q_a_p7": "B",
+      "q_a_s1": "D",
+      "q_a_s2": "C",
+      "q_a_s3": "C",
+      "q_a_s4": "C",
+      "q_a_s5": "B",
+      "q_a_s6": "C",
+      "q_a_s7": "C",
+      "q_a_t1": "A",
+      "q_a_t2": "B",
+      "q_a_t3": "C",
+      "q_a_t4": "C",
+      "q_a_t5": "A",
+      "q_a_t6": "A",
+      "q_a_t7": "B"
+    },
+    "attemptId": "ATT-JAIN-001-1790012292272",
+    "college": "Jain",
+    "email": "stu1@edu.in",
+    "endTime": 1790015892271,
+    "paperSeries": "A",
+    "published": false,
+    "questionsSnapshot": [
+      {
+        "correctAnswer": "B",
+        "id": "q_a_p1",
+        "internalTrack": "production",
+        "marks": 1,
+        "options": {
+          "A": "Golden Ratio Spiral",
+          "B": "Rule of Thirds",
+          "C": "Radial Symmetry",
+          "D": "Dutch Angle"
+        },
+        "order": 1,
+        "questionId": "q_a_p1",
+        "questionText": "Which visual composition principle recommends placing focal subjects along the lines or intersections of a 3×3 grid?",
+        "rubric": "",
+        "series": "A",
+        "text": "Which visual composition principle recommends placing focal subjects along the lines or intersections of a 3×3 grid?",
+        "track": "production",
+        "type": "mcq"
+      },
+      {
+        "correctAnswer": "A",
+        "id": "q_a_p2",
+        "internalTrack": "production",
+        "marks": 1,
+        "options": {
+          "A": "Audio from the incoming clip begins before the video transitions",
+          "B": "Video transitions before the audio cuts",
+          "C": "Audio and video cut simultaneously at a marker",
+          "D": "A jump cut accompanied by audio fade"
+        },
+        "order": 2,
+        "questionId": "q_a_p2",
+        "questionText": "In professional video editing, what defines a \"J-Cut\"?",
+        "rubric": "",
+        "series": "A",
+        "text": "In professional video editing, what defines a \"J-Cut\"?",
+        "track": "production",
+        "type": "mcq"
+      },
+      {
+        "correctAnswer": "B",
+        "id": "q_a_p3",
+        "internalTrack": "production",
+        "marks": 1,
+        "options": {
+          "A": "Fill in deep shadows on the subject",
+          "B": "Provide the primary source of illumination and exposure on the subject",
+          "C": "Separate the subject from the background",
+          "D": "Light the green screen evenly"
+        },
+        "order": 3,
+        "questionId": "q_a_p3",
+        "questionText": "In a standard three-point lighting setup, what is the primary function of the Key Light?",
+        "rubric": "",
+        "series": "A",
+        "text": "In a standard three-point lighting setup, what is the primary function of the Key Light?",
+        "track": "production",
+        "type": "mcq"
+      },
+      {
+        "correctAnswer": "A",
+        "id": "q_a_p4",
+        "internalTrack": "production",
+        "marks": 1,
+        "options": {
+          "A": "24 fps",
+          "B": "60 fps",
+          "C": "120 fps",
+          "D": "15 fps"
+        },
+        "order": 4,
+        "questionId": "q_a_p4",
+        "questionText": "What video frame rate is standard for achieving a traditional cinematic look in film and narrative video?",
+        "rubric": "",
+        "series": "A",
+        "text": "What video frame rate is standard for achieving a traditional cinematic look in film and narrative video?",
+        "track": "production",
+        "type": "mcq"
+      },
+      {
+        "correctAnswer": "B",
+        "id": "q_a_p5",
+        "internalTrack": "production",
+        "marks": 1,
+        "options": {
+          "A": "The vertical spacing between lines of text",
+          "B": "The horizontal adjustment of space between individual character pairs",
+          "C": "The overall size of a typeface",
+          "D": "The opacity of font glyphs"
+        },
+        "order": 5,
+        "questionId": "q_a_p5",
+        "questionText": "In graphic design, what does \"Kerning\" refer to?",
+        "rubric": "",
+        "series": "A",
+        "text": "In graphic design, what does \"Kerning\" refer to?",
+        "track": "production",
+        "type": "mcq"
+      },
+      {
+        "correctAnswer": "C",
+        "id": "q_a_p6",
+        "internalTrack": "production",
+        "marks": 1,
+        "options": {
+          "A": "Analogous",
+          "B": "Monochromatic",
+          "C": "Complementary",
+          "D": "Triadic"
+        },
+        "order": 6,
+        "questionId": "q_a_p6",
+        "questionText": "Which color harmony uses colors located directly opposite each other on the color wheel?",
+        "rubric": "",
+        "series": "A",
+        "text": "Which color harmony uses colors located directly opposite each other on the color wheel?",
+        "track": "production",
+        "type": "mcq"
+      },
+      {
+        "correctAnswer": "B",
+        "id": "q_a_p7",
+        "internalTrack": "production",
+        "marks": 1,
+        "options": {
+          "A": "Enhanced bass response",
+          "B": "Harsh digital distortion and lost waveform data",
+          "C": "Automatic noise cancellation",
+          "D": "Stereo widening"
+        },
+        "order": 7,
+        "questionId": "q_a_p7",
+        "questionText": "In digital audio recording for video, what does clipping (peaking above 0 dBFS) cause?",
+        "rubric": "",
+        "series": "A",
+        "text": "In digital audio recording for video, what does clipping (peaking above 0 dBFS) cause?",
+        "track": "production",
+        "type": "mcq"
+      },
+      {
+        "correctAnswer": "C",
+        "id": "q_a_s1",
+        "internalTrack": "strategy",
+        "marks": 1,
+        "options": {
+          "A": "Return On Ad Spend (ROAS)",
+          "B": "Customer Lifetime Value (LTV)",
+          "C": "Customer Acquisition Cost (CAC)",
+          "D": "Click-Through Rate (CTR)"
+        },
+        "order": 8,
+        "questionId": "q_a_s1",
+        "questionText": "Which growth metric calculates the total commercial cost incurred to acquire a single paying customer?",
+        "rubric": "",
+        "series": "A",
+        "text": "Which growth metric calculates the total commercial cost incurred to acquire a single paying customer?",
+        "track": "strategy",
+        "type": "mcq"
+      },
+      {
+        "correctAnswer": "C",
+        "id": "q_a_s2",
+        "internalTrack": "strategy",
+        "marks": 1,
+        "options": {
+          "A": "Direct sales contract closing",
+          "B": "Immediate high-friction checkout",
+          "C": "Brand discovery, audience education, and problem awareness",
+          "D": "Account deactivation surveys"
+        },
+        "order": 9,
+        "questionId": "q_a_s2",
+        "questionText": "In inbound marketing strategy, what is the core objective of Top-of-Funnel (TOFU) content?",
+        "rubric": "",
+        "series": "A",
+        "text": "In inbound marketing strategy, what is the core objective of Top-of-Funnel (TOFU) content?",
+        "track": "strategy",
+        "type": "mcq"
+      },
+      {
+        "correctAnswer": "B",
+        "id": "q_a_s3",
+        "internalTrack": "strategy",
+        "marks": 1,
+        "options": {
+          "A": "Action, Interest, Demand, Acceleration",
+          "B": "Attention, Interest, Desire, Action",
+          "C": "Audience, Intent, Delivery, Authority",
+          "D": "Analysis, Insight, Design, Adoption"
+        },
+        "order": 10,
+        "questionId": "q_a_s3",
+        "questionText": "In digital copywriting, what does the AIDA copywriting framework stand for?",
+        "rubric": "",
+        "series": "A",
+        "text": "In digital copywriting, what does the AIDA copywriting framework stand for?",
+        "track": "strategy",
+        "type": "mcq"
+      },
+      {
+        "correctAnswer": "B",
+        "id": "q_a_s4",
+        "internalTrack": "strategy",
+        "marks": 1,
+        "options": {
+          "A": "Bounce Rate",
+          "B": "Conversion Rate",
+          "C": "Churn Rate",
+          "D": "Impression Frequency"
+        },
+        "order": 11,
+        "questionId": "q_a_s4",
+        "questionText": "Which metric measures the percentage of users who take a desired action (e.g. signup or purchase) after viewing a landing page?",
+        "rubric": "",
+        "series": "A",
+        "text": "Which metric measures the percentage of users who take a desired action (e.g. signup or purchase) after viewing a landing page?",
+        "track": "strategy",
+        "type": "mcq"
+      },
+      {
+        "correctAnswer": "A",
+        "id": "q_a_s5",
+        "internalTrack": "strategy",
+        "marks": 1,
+        "options": {
+          "A": "High saves, shares, and watch-time completion",
+          "B": "Posting at exactly 3:00 AM",
+          "C": "Using only single-word captions",
+          "D": "Disabling comment notifications"
+        },
+        "order": 12,
+        "questionId": "q_a_s5",
+        "questionText": "In organic social media algorithm strategy, what signal contributes most to expanding organic reach to new non-follower audiences?",
+        "rubric": "",
+        "series": "A",
+        "text": "In organic social media algorithm strategy, what signal contributes most to expanding organic reach to new non-follower audiences?",
+        "track": "strategy",
+        "type": "mcq"
+      },
+      {
+        "correctAnswer": "A",
+        "id": "q_a_s6",
+        "internalTrack": "strategy",
+        "marks": 1,
+        "options": {
+          "A": "The net total revenue a business can expect from a single customer account throughout their relationship",
+          "B": "The cost of running Google ads for one month",
+          "C": "The average hourly wage of customer support staff",
+          "D": "The percentage of customers who unsubscribe in 30 days"
+        },
+        "order": 13,
+        "questionId": "q_a_s6",
+        "questionText": "What is \"Customer Lifetime Value\" (LTV / CLV)?",
+        "rubric": "",
+        "series": "A",
+        "text": "What is \"Customer Lifetime Value\" (LTV / CLV)?",
+        "track": "strategy",
+        "type": "mcq"
+      },
+      {
+        "correctAnswer": "A",
+        "id": "q_a_s7",
+        "internalTrack": "strategy",
+        "marks": 1,
+        "options": {
+          "A": "Return On Ad Spend (Revenue generated per dollar spent on advertising)",
+          "B": "Rate of Active Subscribers",
+          "C": "Reach of Audience Segments",
+          "D": "Ratio of Assets to Sales"
+        },
+        "order": 14,
+        "questionId": "q_a_s7",
+        "questionText": "In digital advertising, what does ROAS measure?",
+        "rubric": "",
+        "series": "A",
+        "text": "In digital advertising, what does ROAS measure?",
+        "track": "strategy",
+        "type": "mcq"
+      },
+      {
+        "correctAnswer": "B",
+        "id": "q_a_t1",
+        "internalTrack": "tech",
+        "marks": 1,
+        "options": {
+          "A": "Compressing PNG and WebP images",
+          "B": "Providing explicit machine-readable semantic context to search engines and AI agents",
+          "C": "Encrypting user passwords in local storage",
+          "D": "Compiling CSS into bytecode"
+        },
+        "order": 15,
+        "questionId": "q_a_t1",
+        "questionText": "What primary role does structured schema markup (JSON-LD) serve in modern SEO and Answer Engine Optimization (AEO)?",
+        "rubric": "",
+        "series": "A",
+        "text": "What primary role does structured schema markup (JSON-LD) serve in modern SEO and Answer Engine Optimization (AEO)?",
+        "track": "tech",
+        "type": "mcq"
+      },
+      {
+        "correctAnswer": "B",
+        "id": "q_a_t2",
+        "internalTrack": "tech",
+        "marks": 1,
+        "options": {
+          "A": "A manual database backup tool",
+          "B": "An automated HTTP POST event notification sent to a destination URL when an event occurs",
+          "C": "A local CSS layout framework",
+          "D": "A desktop antivirus scanner"
+        },
+        "order": 16,
+        "questionId": "q_a_t2",
+        "questionText": "In modern web development and automation workflows, what is an outgoing webhook?",
+        "rubric": "",
+        "series": "A",
+        "text": "In modern web development and automation workflows, what is an outgoing webhook?",
+        "track": "tech",
+        "type": "mcq"
+      },
+      {
+        "correctAnswer": "B",
+        "id": "q_a_t3",
+        "internalTrack": "tech",
+        "marks": 1,
+        "options": {
+          "A": "Raw HTML DOM nodes",
+          "B": "High-dimensional numerical vectors capturing semantic meaning of words and text",
+          "C": "Base64 image strings",
+          "D": "Encrypted SQL queries"
+        },
+        "order": 17,
+        "questionId": "q_a_t3",
+        "questionText": "In Generative AI and vector search systems, what do text embeddings represent?",
+        "rubric": "",
+        "series": "A",
+        "text": "In Generative AI and vector search systems, what do text embeddings represent?",
+        "track": "tech",
+        "type": "mcq"
+      },
+      {
+        "correctAnswer": "B",
+        "id": "q_a_t4",
+        "internalTrack": "tech",
+        "marks": 1,
+        "options": {
+          "A": "GET",
+          "B": "POST",
+          "C": "DELETE",
+          "D": "HEAD"
+        },
+        "order": 18,
+        "questionId": "q_a_t4",
+        "questionText": "What HTTP method is typically used in RESTful APIs to create a new resource on the server?",
+        "rubric": "",
+        "series": "A",
+        "text": "What HTTP method is typically used in RESTful APIs to create a new resource on the server?",
+        "track": "tech",
+        "type": "mcq"
+      },
+      {
+        "correctAnswer": "A",
+        "id": "q_a_t5",
+        "internalTrack": "tech",
+        "marks": 1,
+        "options": {
+          "A": "A programming interface for HTML and XML documents representing the page structure as a tree of nodes",
+          "B": "A backend PostgreSQL database table",
+          "C": "A secure DNS routing protocol",
+          "D": "A CSS color palette standard"
+        },
+        "order": 19,
+        "questionId": "q_a_t5",
+        "questionText": "In modern frontend web architecture, what is the Document Object Model (DOM)?",
+        "rubric": "",
+        "series": "A",
+        "text": "In modern frontend web architecture, what is the Document Object Model (DOM)?",
+        "track": "tech",
+        "type": "mcq"
+      },
+      {
+        "correctAnswer": "A",
+        "id": "q_a_t6",
+        "internalTrack": "tech",
+        "marks": 1,
+        "options": {
+          "A": "Optimizing digital content and citations to be cited and surfaced accurately by AI search engines like ChatGPT and Perplexity",
+          "B": "Generating random CSS grid layouts",
+          "C": "Geolocation GPS tracking in mobile apps",
+          "D": "Generating automated SQL database migrations"
+        },
+        "order": 20,
+        "questionId": "q_a_t6",
+        "questionText": "What is Generative Engine Optimization (GEO)?",
+        "rubric": "",
+        "series": "A",
+        "text": "What is Generative Engine Optimization (GEO)?",
+        "track": "tech",
+        "type": "mcq"
+      },
+      {
+        "correctAnswer": "B",
+        "id": "q_a_t7",
+        "internalTrack": "tech",
+        "marks": 1,
+        "options": {
+          "A": "Rendering animation frames on GPUs",
+          "B": "A framework that fetches relevant authoritative documents from a knowledge base to ground LLM responses",
+          "C": "A network firewall protocol",
+          "D": "A minification tool for JavaScript bundles"
+        },
+        "order": 21,
+        "questionId": "q_a_t7",
+        "questionText": "In AI agent orchestration and vibe coding, what is Retrieval-Augmented Generation (RAG)?",
+        "rubric": "",
+        "series": "A",
+        "text": "In AI agent orchestration and vibe coding, what is Retrieval-Augmented Generation (RAG)?",
+        "track": "tech",
+        "type": "mcq"
+      }
+    ],
+    "startTime": 1790012292271,
+    "status": "Pending",
+    "studentId": "JAIN-001",
+    "studentName": "Praneet",
+    "warningCount": 0,
+    "mcqEvaluations": {
+      "q_a_p1": {
+        "questionId": "q_a_p1",
+        "questionText": "Which visual composition principle recommends placing focal subjects along the lines or intersections of a 3×3 grid?",
+        "studentAnswer": "C",
+        "correctAnswer": "B",
+        "marks": 1,
+        "earnedMarks": 0,
+        "isCorrect": false,
+        "evaluatedAt": "2026-09-21T17:39:51.521Z"
+      },
+      "q_a_p2": {
+        "questionId": "q_a_p2",
+        "questionText": "In professional video editing, what defines a \"J-Cut\"?",
+        "studentAnswer": "C",
+        "correctAnswer": "A",
+        "marks": 1,
+        "earnedMarks": 0,
+        "isCorrect": false,
+        "evaluatedAt": "2026-09-21T17:39:51.521Z"
+      },
+      "q_a_p3": {
+        "questionId": "q_a_p3",
+        "questionText": "In a standard three-point lighting setup, what is the primary function of the Key Light?",
+        "studentAnswer": "C",
+        "correctAnswer": "B",
+        "marks": 1,
+        "earnedMarks": 0,
+        "isCorrect": false,
+        "evaluatedAt": "2026-09-21T17:39:51.521Z"
+      },
+      "q_a_p4": {
+        "questionId": "q_a_p4",
+        "questionText": "What video frame rate is standard for achieving a traditional cinematic look in film and narrative video?",
+        "studentAnswer": "C",
+        "correctAnswer": "A",
+        "marks": 1,
+        "earnedMarks": 0,
+        "isCorrect": false,
+        "evaluatedAt": "2026-09-21T17:39:51.521Z"
+      },
+      "q_a_p5": {
+        "questionId": "q_a_p5",
+        "questionText": "In graphic design, what does \"Kerning\" refer to?",
+        "studentAnswer": "C",
+        "correctAnswer": "B",
+        "marks": 1,
+        "earnedMarks": 0,
+        "isCorrect": false,
+        "evaluatedAt": "2026-09-21T17:39:51.521Z"
+      },
+      "q_a_p6": {
+        "questionId": "q_a_p6",
+        "questionText": "Which color harmony uses colors located directly opposite each other on the color wheel?",
+        "studentAnswer": "A",
+        "correctAnswer": "C",
+        "marks": 1,
+        "earnedMarks": 0,
+        "isCorrect": false,
+        "evaluatedAt": "2026-09-21T17:39:51.521Z"
+      },
+      "q_a_p7": {
+        "questionId": "q_a_p7",
+        "questionText": "In digital audio recording for video, what does clipping (peaking above 0 dBFS) cause?",
+        "studentAnswer": "B",
+        "correctAnswer": "B",
+        "marks": 1,
+        "earnedMarks": 1,
+        "isCorrect": true,
+        "evaluatedAt": "2026-09-21T17:39:51.521Z"
+      },
+      "q_a_s1": {
+        "questionId": "q_a_s1",
+        "questionText": "Which growth metric calculates the total commercial cost incurred to acquire a single paying customer?",
+        "studentAnswer": "D",
+        "correctAnswer": "C",
+        "marks": 1,
+        "earnedMarks": 0,
+        "isCorrect": false,
+        "evaluatedAt": "2026-09-21T17:39:51.521Z"
+      },
+      "q_a_s2": {
+        "questionId": "q_a_s2",
+        "questionText": "In inbound marketing strategy, what is the core objective of Top-of-Funnel (TOFU) content?",
+        "studentAnswer": "C",
+        "correctAnswer": "C",
+        "marks": 1,
+        "earnedMarks": 1,
+        "isCorrect": true,
+        "evaluatedAt": "2026-09-21T17:39:51.521Z"
+      },
+      "q_a_s3": {
+        "questionId": "q_a_s3",
+        "questionText": "In digital copywriting, what does the AIDA copywriting framework stand for?",
+        "studentAnswer": "C",
+        "correctAnswer": "B",
+        "marks": 1,
+        "earnedMarks": 0,
+        "isCorrect": false,
+        "evaluatedAt": "2026-09-21T17:39:51.521Z"
+      },
+      "q_a_s4": {
+        "questionId": "q_a_s4",
+        "questionText": "Which metric measures the percentage of users who take a desired action (e.g. signup or purchase) after viewing a landing page?",
+        "studentAnswer": "C",
+        "correctAnswer": "B",
+        "marks": 1,
+        "earnedMarks": 0,
+        "isCorrect": false,
+        "evaluatedAt": "2026-09-21T17:39:51.521Z"
+      },
+      "q_a_s5": {
+        "questionId": "q_a_s5",
+        "questionText": "In organic social media algorithm strategy, what signal contributes most to expanding organic reach to new non-follower audiences?",
+        "studentAnswer": "B",
+        "correctAnswer": "A",
+        "marks": 1,
+        "earnedMarks": 0,
+        "isCorrect": false,
+        "evaluatedAt": "2026-09-21T17:39:51.521Z"
+      },
+      "q_a_s6": {
+        "questionId": "q_a_s6",
+        "questionText": "What is \"Customer Lifetime Value\" (LTV / CLV)?",
+        "studentAnswer": "C",
+        "correctAnswer": "A",
+        "marks": 1,
+        "earnedMarks": 0,
+        "isCorrect": false,
+        "evaluatedAt": "2026-09-21T17:39:51.521Z"
+      },
+      "q_a_s7": {
+        "questionId": "q_a_s7",
+        "questionText": "In digital advertising, what does ROAS measure?",
+        "studentAnswer": "C",
+        "correctAnswer": "A",
+        "marks": 1,
+        "earnedMarks": 0,
+        "isCorrect": false,
+        "evaluatedAt": "2026-09-21T17:39:51.521Z"
+      },
+      "q_a_t1": {
+        "questionId": "q_a_t1",
+        "questionText": "What primary role does structured schema markup (JSON-LD) serve in modern SEO and Answer Engine Optimization (AEO)?",
+        "studentAnswer": "A",
+        "correctAnswer": "B",
+        "marks": 1,
+        "earnedMarks": 0,
+        "isCorrect": false,
+        "evaluatedAt": "2026-09-21T17:39:51.521Z"
+      },
+      "q_a_t2": {
+        "questionId": "q_a_t2",
+        "questionText": "In modern web development and automation workflows, what is an outgoing webhook?",
+        "studentAnswer": "B",
+        "correctAnswer": "B",
+        "marks": 1,
+        "earnedMarks": 1,
+        "isCorrect": true,
+        "evaluatedAt": "2026-09-21T17:39:51.521Z"
+      },
+      "q_a_t3": {
+        "questionId": "q_a_t3",
+        "questionText": "In Generative AI and vector search systems, what do text embeddings represent?",
+        "studentAnswer": "C",
+        "correctAnswer": "B",
+        "marks": 1,
+        "earnedMarks": 0,
+        "isCorrect": false,
+        "evaluatedAt": "2026-09-21T17:39:51.521Z"
+      },
+      "q_a_t4": {
+        "questionId": "q_a_t4",
+        "questionText": "What HTTP method is typically used in RESTful APIs to create a new resource on the server?",
+        "studentAnswer": "C",
+        "correctAnswer": "B",
+        "marks": 1,
+        "earnedMarks": 0,
+        "isCorrect": false,
+        "evaluatedAt": "2026-09-21T17:39:51.521Z"
+      },
+      "q_a_t5": {
+        "questionId": "q_a_t5",
+        "questionText": "In modern frontend web architecture, what is the Document Object Model (DOM)?",
+        "studentAnswer": "A",
+        "correctAnswer": "A",
+        "marks": 1,
+        "earnedMarks": 1,
+        "isCorrect": true,
+        "evaluatedAt": "2026-09-21T17:39:51.521Z"
+      },
+      "q_a_t6": {
+        "questionId": "q_a_t6",
+        "questionText": "What is Generative Engine Optimization (GEO)?",
+        "studentAnswer": "A",
+        "correctAnswer": "A",
+        "marks": 1,
+        "earnedMarks": 1,
+        "isCorrect": true,
+        "evaluatedAt": "2026-09-21T17:39:51.521Z"
+      },
+      "q_a_t7": {
+        "questionId": "q_a_t7",
+        "questionText": "In AI agent orchestration and vibe coding, what is Retrieval-Augmented Generation (RAG)?",
+        "studentAnswer": "B",
+        "correctAnswer": "B",
+        "marks": 1,
+        "earnedMarks": 1,
+        "isCorrect": true,
+        "evaluatedAt": "2026-09-21T17:39:51.521Z"
+      }
+    },
+    "submitTime": 1790012391521,
+    "autoSubmitted": false,
+    "autoSubmitReason": null,
+    "mcqScore": 6,
+    "productionScore": 1,
+    "productionMax": 7,
+    "strategyScore": 1,
+    "strategyMax": 7,
+    "techScore": 4,
+    "techMax": 7,
+    "totalScore": 6,
+    "maxScore": 21,
+    "suggestedCourse": "Tech",
+    "isTie": false
+  }
+}

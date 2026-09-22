@@ -1,0 +1,919 @@
+<!DOCTYPE html>
+<html lang="en" class="">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>RIZZ — Hiring Console</title>
+  <meta name="description" content="RIZZ Hiring Console — Manage roles, candidates, offers, and your team." />
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&family=Darker+Grotesque:wght@400;500;600;700;800;900&family=Playfair+Display:ital,wght@1,400;1,500;1,600;1,700&display=swap" rel="stylesheet" />
+
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+  <!-- Tailwind -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans:      ['"DM Sans"', 'ui-sans-serif'],
+            grotesque: ['"Darker Grotesque"', 'ui-sans-serif'],
+            playfair:  ['"Playfair Display"', 'Georgia', 'serif'],
+          },
+        },
+      },
+    };
+    (function () {
+      var s = localStorage.getItem('rizz_theme');
+      var p = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+      if (s === 'dark' || (!s && p)) document.documentElement.classList.add('dark');
+    })();
+  </script>
+
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+  <script src="firebase-config.js"></script>
+
+  <style>
+    body { font-family: 'DM Sans', ui-sans-serif, system-ui; }
+    .font-grotesque { font-family: 'Darker Grotesque', ui-sans-serif; }
+    .font-playfair  { font-family: 'Playfair Display', Georgia, serif; font-style: italic; }
+
+    :root {
+      --bg-page:      #F4F6F9;
+      --bg-card:      #FFFFFF;
+      --bg-input:     #F8FAFC;
+      --border:       #E2E8F0;
+      --text-primary: #0F172A;
+      --text-muted:   #64748B;
+      --text-label:   #334155;
+      --magenta:      #D31F83;
+      --gold:         #EDA233;
+      --sidebar-bg:   #FFFFFF;
+      --sidebar-border: #E9EDF2;
+    }
+    .dark {
+      --bg-page:      #0B0F19;
+      --bg-card:      #131B2E;
+      --bg-input:     #1A2338;
+      --border:       #1E293B;
+      --text-primary: #F1F5F9;
+      --text-muted:   #94A3B8;
+      --text-label:   #CBD5E1;
+      --sidebar-bg:   #0F1623;
+      --sidebar-border: #1E293B;
+    }
+
+    html, body { height: 100%; margin: 0; overflow: hidden; }
+    body { background: var(--bg-page); color: var(--text-primary); transition: background 0.3s, color 0.3s; }
+    #app { display: flex; height: 100vh; }
+
+    /* Sidebar */
+    #sidebar {
+      width: 240px; min-width: 240px;
+      background: var(--sidebar-bg);
+      border-right: 1px solid var(--sidebar-border);
+      display: flex; flex-direction: column;
+      transition: background 0.3s, border-color 0.3s;
+      z-index: 50;
+    }
+    #sidebar-logo { padding: 20px 20px 16px; border-bottom: 1px solid var(--sidebar-border); }
+    #sidebar-logo img { height: 30px; }
+    #sidebar-badge { margin: 0 20px; padding: 10px 0 14px; border-bottom: 1px solid var(--sidebar-border); }
+    #sidebar-badge .badge-label { font-size: 10px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-muted); }
+    #sidebar-badge .company-name { font-family: 'Darker Grotesque', ui-sans-serif; font-size: 15px; font-weight: 800; color: var(--text-primary); margin-top: 2px; }
+    #sidebar-nav { flex: 1; overflow-y: auto; padding: 12px 10px; }
+    .nav-section-label { font-size: 10px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-muted); padding: 10px 10px 4px; }
+    .nav-item { display: flex; align-items: center; gap: 10px; padding: 9px 10px; border-radius: 10px; cursor: pointer; font-size: 13.5px; font-weight: 500; color: var(--text-muted); transition: background 0.15s, color 0.15s; margin-bottom: 1px; }
+    .nav-item:hover { background: var(--bg-input); color: var(--text-primary); }
+    .nav-item.active { background: rgba(211,31,131,0.1); color: #D31F83; font-weight: 600; }
+    .nav-icon { width: 18px; text-align: center; font-size: 14px; }
+    .nav-badge { margin-left: auto; background: #D31F83; color: white; font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: 999px; }
+    #sidebar-footer { padding: 12px 10px; border-top: 1px solid var(--sidebar-border); }
+
+    /* Main */
+    #main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+    #topbar { height: 60px; min-height: 60px; background: var(--bg-card); border-bottom: 1px solid var(--border); display: flex; align-items: center; padding: 0 24px; gap: 12px; transition: background 0.3s; }
+    #topbar-title { font-family: 'Darker Grotesque', ui-sans-serif; font-size: 20px; font-weight: 800; color: var(--text-primary); flex: 1; }
+    #content { flex: 1; overflow-y: auto; padding: 24px; }
+
+    /* Cards */
+    .card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; transition: background 0.3s, border-color 0.3s; }
+
+    /* Stat cards */
+    .stat-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; padding: 20px; position: relative; overflow: hidden; }
+    .stat-card::after { content: ''; position: absolute; top: -20px; right: -20px; width: 80px; height: 80px; border-radius: 50%; opacity: 0.07; }
+    .stat-card.magenta::after { background: #D31F83; }
+    .stat-card.gold::after    { background: #EDA233; }
+    .stat-card.blue::after    { background: #3B82F6; }
+    .stat-card.green::after   { background: #10B981; }
+    .stat-val { font-family: 'Darker Grotesque', ui-sans-serif; font-size: 36px; font-weight: 900; line-height: 1; color: var(--text-primary); }
+    .stat-label { font-size: 12.5px; color: var(--text-muted); margin-top: 4px; }
+    .stat-icon { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 16px; margin-bottom: 12px; }
+
+    /* Form */
+    .form-input { width: 100%; background: var(--bg-input); border: 1px solid var(--border); border-radius: 10px; padding: 10px 14px; font-size: 13.5px; color: var(--text-primary); font-family: 'DM Sans', ui-sans-serif; transition: border-color 0.15s, box-shadow 0.15s; outline: none; box-sizing: border-box; }
+    .form-input:focus { border-color: #D31F83; box-shadow: 0 0 0 3px rgba(211,31,131,0.12); }
+    textarea.form-input { resize: vertical; min-height: 90px; }
+    .form-label { font-size: 12.5px; font-weight: 600; color: var(--text-label); margin-bottom: 6px; display: block; }
+    select.form-input { appearance: none; -webkit-appearance: none; cursor: pointer; }
+
+    /* Buttons */
+    .btn-primary { background: #D31F83; color: white; border: none; border-radius: 10px; padding: 10px 20px; font-family: 'Darker Grotesque', ui-sans-serif; font-size: 14px; font-weight: 700; cursor: pointer; transition: background 0.15s, transform 0.1s; }
+    .btn-primary:hover { background: #B8196F; }
+    .btn-primary:active { transform: scale(0.98); }
+    .btn-secondary { background: var(--bg-input); color: var(--text-primary); border: 1px solid var(--border); border-radius: 10px; padding: 9px 18px; font-family: 'Darker Grotesque', ui-sans-serif; font-size: 14px; font-weight: 600; cursor: pointer; transition: background 0.15s; }
+    .btn-secondary:hover { background: var(--border); }
+    .btn-ghost { background: transparent; border: none; color: var(--text-muted); cursor: pointer; border-radius: 8px; padding: 6px 10px; font-size: 13px; transition: background 0.15s, color 0.15s; }
+    .btn-ghost:hover { background: var(--bg-input); color: var(--text-primary); }
+
+    /* Badge */
+    .badge { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 999px; }
+    .badge-magenta { background: rgba(211,31,131,0.12); color: #D31F83; }
+    .badge-gold    { background: rgba(237,162,51,0.15); color: #92650A; }
+    .dark .badge-gold { color: #FCD34D; }
+    .badge-blue    { background: rgba(59,130,246,0.12); color: #3B82F6; }
+    .badge-green   { background: rgba(16,185,129,0.12); color: #10B981; }
+    .badge-gray    { background: var(--bg-input); color: var(--text-muted); border: 1px solid var(--border); }
+    .badge-red     { background: rgba(239,68,68,0.12); color: #EF4444; }
+    .badge-purple  { background: rgba(139,92,246,0.12); color: #8B5CF6; }
+
+    /* Kanban */
+    #kanban-board { display: flex; gap: 14px; overflow-x: auto; padding-bottom: 16px; min-height: 480px; }
+    .kanban-col { min-width: 195px; width: 195px; background: var(--bg-input); border-radius: 14px; padding: 12px; flex-shrink: 0; }
+    .kanban-col-title { font-family: 'Darker Grotesque', ui-sans-serif; font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+    .kanban-col-count { background: var(--border); color: var(--text-muted); font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: 999px; }
+    .kanban-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 11px; margin-bottom: 8px; cursor: pointer; transition: box-shadow 0.15s, transform 0.1s; }
+    .kanban-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.1); transform: translateY(-1px); }
+    .kanban-card .cname { font-size: 13px; font-weight: 600; color: var(--text-primary); }
+    .kanban-card .rizz-score { font-family: 'Darker Grotesque', ui-sans-serif; font-size: 22px; font-weight: 900; color: #D31F83; }
+    .kanban-card .meta { font-size: 11px; color: var(--text-muted); }
+    .kmove-btn { font-size: 11px; padding: 3px 7px; border-radius: 6px; border: 1px solid var(--border); background: var(--bg-input); color: var(--text-muted); cursor: pointer; margin-top: 6px; transition: background 0.1s, color 0.1s, border-color 0.1s; }
+    .kmove-btn:hover { background: rgba(211,31,131,0.1); color: #D31F83; border-color: rgba(211,31,131,0.4); }
+
+    /* Funnel */
+    .funnel-row { display: flex; align-items: center; gap: 10px; }
+    .funnel-label { font-size: 12px; color: var(--text-muted); width: 78px; text-align: right; flex-shrink: 0; }
+    .funnel-bar-bg { flex: 1; background: var(--bg-input); border-radius: 999px; height: 22px; overflow: hidden; }
+    .funnel-bar { height: 100%; border-radius: 999px; display: flex; align-items: center; padding-left: 10px; transition: width 0.8s cubic-bezier(.4,0,.2,1); }
+    .funnel-bar span { font-size: 11px; font-weight: 700; color: white; }
+    .funnel-drop { font-size: 11px; color: var(--text-muted); width: 42px; flex-shrink: 0; }
+
+    /* Calendar */
+    .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; }
+    .cal-day { aspect-ratio: 1; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 12px; cursor: pointer; transition: background 0.15s; background: var(--bg-input); border: 1px solid transparent; }
+    .cal-day:hover { background: rgba(211,31,131,0.1); border-color: rgba(211,31,131,0.3); }
+    .cal-day.has-slot { background: rgba(211,31,131,0.12); color: #D31F83; font-weight: 600; border-color: rgba(211,31,131,0.3); }
+    .cal-day.today { border-color: #D31F83; font-weight: 700; }
+    .cal-day.past { opacity: 0.35; pointer-events: none; }
+    .cal-day-hdr { font-size: 11px; font-weight: 700; text-align: center; color: var(--text-muted); padding-bottom: 4px; }
+
+    /* Activity */
+    .activity-item { display: flex; gap: 12px; padding: 9px 0; border-bottom: 1px solid var(--border); }
+    .activity-item:last-child { border-bottom: none; }
+    .activity-dot { width: 8px; height: 8px; border-radius: 50%; margin-top: 5px; flex-shrink: 0; }
+
+    /* Table */
+    .data-table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+    .data-table th { font-size: 11px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: var(--text-muted); padding: 10px 14px; text-align: left; border-bottom: 1px solid var(--border); white-space: nowrap; }
+    .data-table td { padding: 12px 14px; border-bottom: 1px solid var(--border); color: var(--text-primary); }
+    .data-table tr:last-child td { border-bottom: none; }
+    .data-table tr:hover td { background: var(--bg-input); }
+
+    /* Track pill */
+    .track-pill { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 999px; border: 1.5px solid var(--border); font-size: 12.5px; font-weight: 500; color: var(--text-muted); cursor: pointer; transition: all 0.15s; user-select: none; }
+    .track-pill:hover { border-color: #D31F83; color: #D31F83; background: rgba(211,31,131,0.06); }
+    .track-pill.selected { border-color: #D31F83; background: rgba(211,31,131,0.1); color: #D31F83; font-weight: 600; }
+    .track-pill input { display: none; }
+
+    /* Theme toggle */
+    #themeToggle { display: flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 8px; background: var(--bg-input); border: 1px solid var(--border); color: var(--text-muted); cursor: pointer; font-size: 12px; font-weight: 600; transition: background 0.15s; }
+    #themeToggle:hover { background: var(--border); }
+
+    .section-title { font-family: 'Darker Grotesque', ui-sans-serif; font-size: 22px; font-weight: 900; color: var(--text-primary); }
+    .section-sub { font-size: 13px; color: var(--text-muted); margin-top: 2px; }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 999px; }
+
+    /* Toast */
+    #toast { position: fixed; bottom: 24px; right: 24px; background: #D31F83; color: white; padding: 12px 20px; border-radius: 12px; font-size: 13.5px; font-weight: 600; box-shadow: 0 8px 24px rgba(211,31,131,0.35); transform: translateY(80px); opacity: 0; transition: transform 0.3s, opacity 0.3s; z-index: 9999; pointer-events: none; }
+    #toast.show { transform: translateY(0); opacity: 1; }
+
+    /* Modal */
+    #modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 999; display: none; align-items: center; justify-content: center; padding: 24px; }
+    #modal-overlay.open { display: flex; }
+    #modal-box { background: var(--bg-card); border: 1px solid var(--border); border-radius: 20px; padding: 28px; width: 100%; max-width: 540px; max-height: 90vh; overflow-y: auto; animation: modal-in 0.25s ease; }
+    @keyframes modal-in { from { opacity: 0; transform: scale(0.95) translateY(10px); } to { opacity: 1; transform: none; } }
+
+    #offer-letter-preview { background: var(--bg-input); border: 1px solid var(--border); border-radius: 12px; padding: 24px; font-size: 13px; line-height: 1.8; white-space: pre-wrap; color: var(--text-primary); }
+
+    @media (max-width: 768px) {
+      #sidebar { position: fixed; left: -240px; top: 0; bottom: 0; transition: left 0.25s; }
+      #sidebar.open { left: 0; box-shadow: 4px 0 24px rgba(0,0,0,0.2); }
+      #content { padding: 16px; }
+    }
+
+    .fade-in { animation: fade-in 0.35s ease both; }
+    @keyframes fade-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+    .demo-banner { background: rgba(237,162,51,0.12); border: 1px solid rgba(237,162,51,0.3); border-radius: 10px; padding: 8px 14px; font-size: 12px; color: #92650A; display: flex; align-items: center; gap: 8px; margin-bottom: 16px; }
+    .dark .demo-banner { color: #FCD34D; }
+  </style>
+</head>
+<body>
+<div id="app">
+
+  <!-- SIDEBAR -->
+  <aside id="sidebar">
+    <div id="sidebar-logo">
+      <img id="sidebarLogo" src="logo-light.png" alt="RIZZ" />
+    </div>
+    <div id="sidebar-badge">
+      <div class="badge-label">Hiring Console</div>
+      <div class="company-name" id="companyName">—</div>
+    </div>
+    <nav id="sidebar-nav">
+      <div class="nav-section-label">Overview</div>
+      <div class="nav-item active" data-section="dashboard" id="nav-dashboard">
+        <i class="nav-icon fa-solid fa-gauge"></i> Dashboard
+      </div>
+      <div class="nav-section-label">Recruitment</div>
+      <div class="nav-item" data-section="post-role" id="nav-post-role">
+        <i class="nav-icon fa-solid fa-circle-plus"></i> Post a Role
+      </div>
+      <div class="nav-item" data-section="pipeline" id="nav-pipeline">
+        <i class="nav-icon fa-solid fa-table-columns"></i> Candidate Pipeline
+        <span class="nav-badge" id="badge-pipeline">12</span>
+      </div>
+      <div class="nav-item" data-section="scheduling" id="nav-scheduling">
+        <i class="nav-icon fa-solid fa-calendar-check"></i> Interview Slots
+      </div>
+      <div class="nav-section-label">Offers &amp; Team</div>
+      <div class="nav-item" data-section="offers" id="nav-offers">
+        <i class="nav-icon fa-solid fa-file-contract"></i> Offer Management
+        <span class="nav-badge" id="badge-offers" style="background:#EDA233;">3</span>
+      </div>
+      <div class="nav-item" data-section="team" id="nav-team">
+        <i class="nav-icon fa-solid fa-users"></i> Team Management
+      </div>
+      <div class="nav-section-label">Insights</div>
+      <div class="nav-item" data-section="analytics" id="nav-analytics">
+        <i class="nav-icon fa-solid fa-chart-bar"></i> Analytics
+      </div>
+    </nav>
+    <div id="sidebar-footer">
+      <button class="btn-ghost" id="logoutBtn" style="color:#EF4444;width:100%;text-align:left;">
+        <i class="fa-solid fa-right-from-bracket mr-2"></i> Logout
+      </button>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <div id="main">
+    <div id="topbar">
+      <button class="btn-ghost" id="sidebarToggle" style="margin-right:4px;"><i class="fa-solid fa-bars"></i></button>
+      <div id="topbar-title">Dashboard</div>
+      <div id="topbar-greeting" style="font-size:12.5px;color:var(--text-muted);"></div>
+      <div style="width:1px;height:20px;background:var(--border);margin:0 4px;"></div>
+      <button id="themeToggle"><i id="themeIcon" class="fa-solid fa-moon" style="font-size:12px;"></i><span id="themeLabel">Dark</span></button>
+    </div>
+
+    <div id="content">
+
+      <!-- DASHBOARD -->
+      <section id="sec-dashboard" class="fade-in">
+        <div class="demo-banner">
+          <i class="fa-solid fa-flask-vial"></i>
+          <span><strong>Demo Mode:</strong> Showing realistic seeded data — post a real role to start receiving actual applicants.</span>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(185px,1fr));gap:16px;margin-bottom:24px;">
+          <div class="stat-card magenta"><div class="stat-icon" style="background:rgba(211,31,131,0.1);color:#D31F83;"><i class="fa-solid fa-briefcase"></i></div><div class="stat-val" id="stat-open-roles">4</div><div class="stat-label">Open Roles</div></div>
+          <div class="stat-card gold" style="animation-delay:0.05s;"><div class="stat-icon" style="background:rgba(237,162,51,0.1);color:#EDA233;"><i class="fa-solid fa-users"></i></div><div class="stat-val" id="stat-total-apps">47</div><div class="stat-label">Total Applicants</div></div>
+          <div class="stat-card blue" style="animation-delay:0.1s;"><div class="stat-icon" style="background:rgba(59,130,246,0.1);color:#3B82F6;"><i class="fa-solid fa-handshake"></i></div><div class="stat-val" id="stat-in-interview">9</div><div class="stat-label">In Interview Stage</div></div>
+          <div class="stat-card green" style="animation-delay:0.15s;"><div class="stat-icon" style="background:rgba(16,185,129,0.1);color:#10B981;"><i class="fa-solid fa-envelope-open-text"></i></div><div class="stat-val" id="stat-offers-pending">3</div><div class="stat-label">Offers Pending</div></div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px;">
+          <div class="card" style="padding:20px;">
+            <div style="font-family:'Darker Grotesque',ui-sans-serif;font-size:16px;font-weight:800;margin-bottom:16px;color:var(--text-primary);">Hiring Funnel</div>
+            <div id="funnel-chart" style="display:flex;flex-direction:column;gap:10px;"></div>
+          </div>
+          <div class="card" style="padding:20px;overflow-y:auto;max-height:340px;">
+            <div style="font-family:'Darker Grotesque',ui-sans-serif;font-size:16px;font-weight:800;margin-bottom:12px;color:var(--text-primary);">Recent Activity</div>
+            <div id="activity-feed"></div>
+          </div>
+        </div>
+        <div class="card" style="overflow:hidden;">
+          <div style="padding:16px 20px;border-bottom:1px solid var(--border);font-family:'Darker Grotesque',ui-sans-serif;font-size:16px;font-weight:800;color:var(--text-primary);">Active Roles</div>
+          <table class="data-table"><thead><tr><th>Role Title</th><th>CTC</th><th>Location</th><th>Track</th><th>Applicants</th><th>Status</th><th>Action</th></tr></thead><tbody id="roles-table-body"></tbody></table>
+        </div>
+      </section>
+
+      <!-- POST A ROLE -->
+      <section id="sec-post-role" class="fade-in" style="display:none;">
+        <div style="margin-bottom:20px;"><div class="section-title">Post a New Role</div><div class="section-sub">Create a job posting for RIZZ students to apply to.</div></div>
+        <div style="display:grid;grid-template-columns:1fr 360px;gap:20px;align-items:start;">
+          <div class="card" style="padding:24px;">
+            <form id="postRoleForm">
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
+                <div><label class="form-label">Role Title <span style="color:#D31F83;">*</span></label><input class="form-input" id="rf-title" type="text" placeholder="e.g. Brand Designer, Video Editor" required /></div>
+                <div><label class="form-label">Number of Openings</label><input class="form-input" id="rf-openings" type="number" min="1" value="1" /></div>
+              </div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
+                <div><label class="form-label">CTC / Stipend (₹/month) <span style="color:#D31F83;">*</span></label><input class="form-input" id="rf-ctc" type="text" placeholder="e.g. 15000" required /></div>
+                <div><label class="form-label">Location <span style="color:#D31F83;">*</span></label><input class="form-input" id="rf-location" type="text" placeholder="e.g. Bengaluru / Remote" required /></div>
+              </div>
+              <div style="margin-bottom:16px;"><label class="form-label">Role Description</label><textarea class="form-input" id="rf-desc" placeholder="Describe the role, responsibilities, and what you're looking for..."></textarea></div>
+              <div style="margin-bottom:16px;">
+                <label class="form-label">SET Track Tags <span style="color:var(--text-muted);font-weight:400;">(select all that apply)</span></label>
+                <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:4px;">
+                  <label class="track-pill"><input type="checkbox" value="Designing" onchange="togglePill(this)"><i class="fa-solid fa-palette fa-xs"></i> Designing</label>
+                  <label class="track-pill"><input type="checkbox" value="Video Editing" onchange="togglePill(this)"><i class="fa-solid fa-video fa-xs"></i> Video Editing</label>
+                  <label class="track-pill"><input type="checkbox" value="Tech &amp; AI" onchange="togglePill(this)"><i class="fa-solid fa-microchip fa-xs"></i> Tech &amp; AI</label>
+                  <label class="track-pill"><input type="checkbox" value="Creative Strategy" onchange="togglePill(this)"><i class="fa-solid fa-lightbulb fa-xs"></i> Creative Strategy</label>
+                </div>
+              </div>
+              <div style="margin-bottom:20px;"><label class="form-label">Minimum Rizz Score <span style="color:var(--text-muted);font-weight:400;">(optional)</span></label><input class="form-input" id="rf-min-score" type="number" min="0" max="100" placeholder="e.g. 60" style="max-width:200px;" /></div>
+              <div style="display:flex;gap:10px;">
+                <button type="submit" class="btn-primary"><i class="fa-solid fa-rocket" style="margin-right:5px;"></i>Publish Role</button>
+                <button type="button" class="btn-secondary" id="previewRoleBtn"><i class="fa-regular fa-eye" style="margin-right:5px;"></i>Preview</button>
+                <button type="button" class="btn-ghost" id="saveDraftBtn">Save Draft</button>
+              </div>
+            </form>
+          </div>
+          <div>
+            <div class="card" style="padding:20px;margin-bottom:16px;">
+              <div style="font-family:'Darker Grotesque',ui-sans-serif;font-size:15px;font-weight:800;margin-bottom:12px;color:var(--text-primary);"><i class="fa-solid fa-circle-info" style="color:#3B82F6;margin-right:6px;"></i>Tips</div>
+              <ul style="font-size:12.5px;color:var(--text-muted);line-height:2;padding-left:16px;margin:0;">
+                <li>Be specific with the role title</li>
+                <li>CTC and Location lock after first application</li>
+                <li>SET track tags surface the role to the right students</li>
+                <li>Min Rizz Score ensures quality-filtered applicants</li>
+              </ul>
+            </div>
+            <div class="card" style="padding:20px;">
+              <div style="font-family:'Darker Grotesque',ui-sans-serif;font-size:15px;font-weight:800;margin-bottom:10px;color:var(--text-primary);">Your Active Roles</div>
+              <div id="sidebar-roles-list" style="font-size:13px;color:var(--text-muted);"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- PIPELINE -->
+      <section id="sec-pipeline" class="fade-in" style="display:none;">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;flex-wrap:wrap;">
+          <div><div class="section-title">Candidate Pipeline</div><div class="section-sub">Move candidates across stages using the action buttons.</div></div>
+          <div style="margin-left:auto;display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+            <select class="form-input" id="pipeline-role-filter" style="width:auto;padding:8px 12px;"><option value="all">All Roles</option></select>
+            <select class="form-input" id="pipeline-track-filter" style="width:auto;padding:8px 12px;"><option value="all">All Tracks</option><option value="Designing">Designing</option><option value="Video Editing">Video Editing</option><option value="Tech &amp; AI">Tech &amp; AI</option><option value="Creative Strategy">Creative Strategy</option></select>
+            <button class="btn-secondary" id="bulkShortlistBtn"><i class="fa-solid fa-check-double" style="margin-right:5px;"></i>Bulk Shortlist</button>
+            <button class="btn-ghost" id="bulkRejectBtn" style="color:#EF4444;border:1px solid rgba(239,68,68,0.3);"><i class="fa-solid fa-xmark" style="margin-right:5px;"></i>Bulk Reject</button>
+          </div>
+        </div>
+        <div id="kanban-board"></div>
+      </section>
+
+      <!-- INTERVIEW SCHEDULING -->
+      <section id="sec-scheduling" class="fade-in" style="display:none;">
+        <div style="margin-bottom:20px;"><div class="section-title">Interview Scheduling</div><div class="section-sub">Set available time slots for candidates to book.</div></div>
+        <div style="display:grid;grid-template-columns:1fr 320px;gap:20px;align-items:start;">
+          <div class="card" style="padding:20px;">
+            <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
+              <button class="btn-ghost" id="cal-prev"><i class="fa-solid fa-chevron-left"></i></button>
+              <div id="cal-month-label" style="flex:1;text-align:center;font-family:'Darker Grotesque',ui-sans-serif;font-size:17px;font-weight:800;color:var(--text-primary);"></div>
+              <button class="btn-ghost" id="cal-next"><i class="fa-solid fa-chevron-right"></i></button>
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:6px;">
+              <div class="cal-day-hdr">S</div><div class="cal-day-hdr">M</div><div class="cal-day-hdr">T</div><div class="cal-day-hdr">W</div><div class="cal-day-hdr">T</div><div class="cal-day-hdr">F</div><div class="cal-day-hdr">S</div>
+            </div>
+            <div class="cal-grid" id="cal-grid"></div>
+            <div style="display:flex;gap:14px;margin-top:12px;font-size:11.5px;color:var(--text-muted);">
+              <span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:rgba(211,31,131,0.3);margin-right:4px;"></span>Has slots</span>
+              <span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;border:2px solid #D31F83;margin-right:4px;"></span>Today</span>
+            </div>
+          </div>
+          <div>
+            <div class="card" style="padding:20px;margin-bottom:16px;">
+              <div style="font-family:'Darker Grotesque',ui-sans-serif;font-size:16px;font-weight:800;margin-bottom:14px;color:var(--text-primary);">Add Interview Slots</div>
+              <label class="form-label">Date</label><input class="form-input" type="date" id="slot-date" style="margin-bottom:12px;" />
+              <label class="form-label">Times (comma-separated)</label><input class="form-input" id="slot-times" placeholder="e.g. 10:00, 11:30, 14:00" style="margin-bottom:12px;" />
+              <label class="form-label">For Role</label><select class="form-input" id="slot-role" style="margin-bottom:14px;"><option value="all">All Roles</option></select>
+              <button class="btn-primary" id="addSlotBtn" style="width:100%;"><i class="fa-solid fa-plus" style="margin-right:5px;"></i>Add Slots</button>
+            </div>
+            <div class="card" style="padding:20px;">
+              <div style="font-family:'Darker Grotesque',ui-sans-serif;font-size:15px;font-weight:800;margin-bottom:12px;color:var(--text-primary);">Upcoming Interviews</div>
+              <div id="upcoming-interviews" style="font-size:13px;color:var(--text-muted);"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- OFFER MANAGEMENT -->
+      <section id="sec-offers" class="fade-in" style="display:none;">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;">
+          <div><div class="section-title">Offer Management</div><div class="section-sub">Generate, track, and manage offer letters.</div></div>
+          <button class="btn-primary" id="newOfferBtn" style="margin-left:auto;"><i class="fa-solid fa-plus" style="margin-right:5px;"></i>Generate Offer</button>
+        </div>
+        <div id="offers-list" style="display:flex;flex-direction:column;gap:14px;"></div>
+      </section>
+
+      <!-- TEAM MANAGEMENT -->
+      <section id="sec-team" class="fade-in" style="display:none;">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;">
+          <div><div class="section-title">Team Management</div><div class="section-sub">Manage recruiter sub-accounts within your organization.</div></div>
+          <button class="btn-primary" id="addMemberBtn" style="margin-left:auto;"><i class="fa-solid fa-user-plus" style="margin-right:5px;"></i>Add Recruiter</button>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 320px;gap:20px;align-items:start;">
+          <div class="card" style="overflow:hidden;">
+            <div style="padding:16px 20px;border-bottom:1px solid var(--border);font-family:'Darker Grotesque',ui-sans-serif;font-size:16px;font-weight:800;color:var(--text-primary);">Team Members</div>
+            <table class="data-table"><thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Assigned To</th><th>Last Active</th><th></th></tr></thead><tbody id="team-table-body"></tbody></table>
+          </div>
+          <div class="card" style="padding:20px;">
+            <div style="font-family:'Darker Grotesque',ui-sans-serif;font-size:15px;font-weight:800;margin-bottom:12px;color:var(--text-primary);">Activity Log</div>
+            <div id="team-activity-log"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ANALYTICS -->
+      <section id="sec-analytics" class="fade-in" style="display:none;">
+        <div style="margin-bottom:20px;"><div class="section-title">Analytics</div><div class="section-sub">Hiring performance metrics and pipeline insights.</div></div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(185px,1fr));gap:16px;margin-bottom:24px;">
+          <div class="stat-card magenta"><div class="stat-icon" style="background:rgba(211,31,131,0.1);color:#D31F83;"><i class="fa-solid fa-clock"></i></div><div class="stat-val">4.2d</div><div class="stat-label">Avg Time-to-Shortlist</div></div>
+          <div class="stat-card gold"><div class="stat-icon" style="background:rgba(237,162,51,0.1);color:#EDA233;"><i class="fa-solid fa-hourglass-half"></i></div><div class="stat-val">18d</div><div class="stat-label">Avg Time-to-Hire</div></div>
+          <div class="stat-card blue"><div class="stat-icon" style="background:rgba(59,130,246,0.1);color:#3B82F6;"><i class="fa-solid fa-percent"></i></div><div class="stat-val">64%</div><div class="stat-label">Offer Accept Rate</div></div>
+          <div class="stat-card green"><div class="stat-icon" style="background:rgba(16,185,129,0.1);color:#10B981;"><i class="fa-solid fa-trophy"></i></div><div class="stat-val">7</div><div class="stat-label">Total Hires (All Time)</div></div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px;">
+          <div class="card" style="padding:20px;">
+            <div style="font-family:'Darker Grotesque',ui-sans-serif;font-size:16px;font-weight:800;margin-bottom:16px;color:var(--text-primary);">Time-to-Hire by Role</div>
+            <div id="tth-chart" style="display:flex;flex-direction:column;gap:12px;"></div>
+          </div>
+          <div class="card" style="padding:20px;">
+            <div style="font-family:'Darker Grotesque',ui-sans-serif;font-size:16px;font-weight:800;margin-bottom:16px;color:var(--text-primary);">Applicants by College</div>
+            <div id="source-chart" style="display:flex;flex-direction:column;gap:12px;"></div>
+          </div>
+        </div>
+        <div class="card" style="overflow:hidden;">
+          <div style="padding:16px 20px;border-bottom:1px solid var(--border);font-family:'Darker Grotesque',ui-sans-serif;font-size:16px;font-weight:800;color:var(--text-primary);">Historical Hiring Record</div>
+          <table class="data-table"><thead><tr><th>Cycle</th><th>Roles Posted</th><th>Total Applicants</th><th>Hired</th><th>Offer Accept %</th></tr></thead><tbody id="history-table-body"></tbody></table>
+        </div>
+      </section>
+
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+<div id="modal-overlay"><div id="modal-box"><div id="modal-content"></div></div></div>
+
+<script>
+'use strict';
+
+/* ── AUTH GUARD ── */
+var currentUser = null;
+(function(){
+  var raw = localStorage.getItem('currentUser') || sessionStorage.getItem('currentUser');
+  if (!raw) { window.location.href = 'index.html'; return; }
+  try { currentUser = JSON.parse(raw); } catch(e) { window.location.href = 'index.html'; return; }
+  if (!currentUser || String(currentUser.role).toLowerCase() !== 'hiring') { window.location.href = 'index.html'; }
+})();
+
+/* ── SEED DATA ── */
+var SEED_ROLES = [
+  { id:'role-001', title:'Brand Designer',         ctc:'15,000', location:'Bengaluru',  tracks:['Designing'],                    minScore:60, openings:2, status:'live', createdAt:'2026-09-01' },
+  { id:'role-002', title:'Short-Form Video Editor', ctc:'12,000', location:'Remote',     tracks:['Video Editing'],                 minScore:55, openings:1, status:'live', createdAt:'2026-09-05' },
+  { id:'role-003', title:'AI Tools Specialist',     ctc:'18,000', location:'Mumbai',     tracks:['Tech & AI'],                    minScore:65, openings:2, status:'live', createdAt:'2026-09-08' },
+  { id:'role-004', title:'Creative Strategist',     ctc:'14,000', location:'Remote',     tracks:['Creative Strategy','Designing'], minScore:58, openings:1, status:'live', createdAt:'2026-09-12' },
+];
+var KANBAN_STAGES = ['Applied','Shortlisted','Interview','Offer','Hired','Rejected'];
+var SEED_CANDIDATES = [
+  { id:'c001', name:'Aarav Mehta',    college:'Jain',  track:'Designing',         rizzScore:82, roleId:'role-001', stage:'Interview',   mentorNote:'Exceptional brand identity instinct.' },
+  { id:'c002', name:'Priya Sharma',   college:'CBALC', track:'Designing',         rizzScore:77, roleId:'role-001', stage:'Shortlisted', mentorNote:'Strong portfolio, needs polish.' },
+  { id:'c003', name:'Rohan Das',      college:'Jain',  track:'Video Editing',     rizzScore:71, roleId:'role-002', stage:'Interview',   mentorNote:'Fast editor, great transitions.' },
+  { id:'c004', name:'Sneha Nair',     college:'CBALC', track:'Video Editing',     rizzScore:68, roleId:'role-002', stage:'Applied',     mentorNote:'Creative but inconsistent pacing.' },
+  { id:'c005', name:'Karan Patel',    college:'Jain',  track:'Tech & AI',         rizzScore:88, roleId:'role-003', stage:'Offer',       mentorNote:'Top performer — built an AI chatbot.' },
+  { id:'c006', name:'Divya Iyer',     college:'CBALC', track:'Tech & AI',         rizzScore:74, roleId:'role-003', stage:'Interview',   mentorNote:'Good understanding of automation.' },
+  { id:'c007', name:'Aditya Roy',     college:'Jain',  track:'Creative Strategy', rizzScore:79, roleId:'role-004', stage:'Shortlisted', mentorNote:'Sharp copywriter, brand instinct.' },
+  { id:'c008', name:'Meera Krishnan', college:'CBALC', track:'Designing',         rizzScore:65, roleId:'role-001', stage:'Applied',     mentorNote:'Needs more real-world projects.' },
+  { id:'c009', name:'Ishaan Gupta',   college:'Jain',  track:'Tech & AI',         rizzScore:83, roleId:'role-003', stage:'Shortlisted', mentorNote:'Strong GitHub, loves prompt engineering.' },
+  { id:'c010', name:'Tanvi Joshi',    college:'CBALC', track:'Creative Strategy', rizzScore:72, roleId:'role-004', stage:'Applied',     mentorNote:'Good campaign ideas, needs execution.' },
+  { id:'c011', name:'Arjun Bose',     college:'Jain',  track:'Video Editing',     rizzScore:61, roleId:'role-002', stage:'Rejected',    mentorNote:'Not yet ready for client work.' },
+  { id:'c012', name:'Lakshmi Rao',    college:'CBALC', track:'Designing',         rizzScore:86, roleId:'role-001', stage:'Hired',       mentorNote:'Placed and started — excellent match.' },
+];
+var SEED_OFFERS = [
+  { id:'o001', candidateId:'c005', candidateName:'Karan Patel',  roleId:'role-003', roleTitle:'AI Tools Specialist',  ctc:'18,000', location:'Mumbai',    status:'sent',     sentAt:'2026-09-15', expiresAt:'2026-09-22' },
+  { id:'o002', candidateId:'c012', candidateName:'Lakshmi Rao',  roleId:'role-001', roleTitle:'Brand Designer',       ctc:'15,000', location:'Bengaluru', status:'accepted', sentAt:'2026-09-10', expiresAt:'2026-09-17' },
+  { id:'o003', candidateId:'c003', candidateName:'Rohan Das',    roleId:'role-002', roleTitle:'Video Editor',         ctc:'12,000', location:'Remote',    status:'sent',     sentAt:'2026-09-18', expiresAt:'2026-09-25' },
+  { id:'o004', candidateId:'c007', candidateName:'Aditya Roy',   roleId:'role-004', roleTitle:'Creative Strategist',  ctc:'14,000', location:'Remote',    status:'declined', sentAt:'2026-09-12', expiresAt:'2026-09-19' },
+];
+var SEED_TEAM = [
+  { id:'t001', name:'ABC Company', email:'hr@abc.com',    role:'admin',     assignedRoles:['All'],                                lastActive:'Now' },
+  { id:'t002', name:'Riya Desai',  email:'riya@abc.com',  role:'recruiter', assignedRoles:['Brand Designer','Creative Strategist'], lastActive:'2h ago' },
+  { id:'t003', name:'Nikhil Verma',email:'nikhil@abc.com',role:'recruiter', assignedRoles:['AI Tools Specialist'],                  lastActive:'1d ago' },
+];
+var SEED_ACTIVITY = [
+  { color:'#10B981', text:'Lakshmi Rao accepted the Brand Designer offer.',  time:'2 hours ago' },
+  { color:'#D31F83', text:'Karan Patel moved to Offer stage.',               time:'5 hours ago' },
+  { color:'#3B82F6', text:'New application from Ishaan Gupta (AI Tools).',  time:'8 hours ago' },
+  { color:'#EDA233', text:'Offer sent to Karan Patel — expires in 7 days.', time:'1 day ago'   },
+  { color:'#EF4444', text:'Aditya Roy declined the Creative Strategist offer.', time:'2 days ago' },
+  { color:'#8B5CF6', text:'3 interview slots added for Sept 22.',            time:'2 days ago'  },
+  { color:'#D31F83', text:'New role posted: Creative Strategist.',           time:'3 days ago'  },
+];
+var SEED_SLOTS = [
+  { date:'2026-09-22', times:['10:00','11:00','14:00'], roleId:'all', booked:['10:00'] },
+  { date:'2026-09-24', times:['09:00','12:00'],         roleId:'role-001', booked:[] },
+  { date:'2026-09-26', times:['15:00','16:00'],         roleId:'role-003', booked:['15:00'] },
+];
+
+/* Runtime state */
+var appRoles      = JSON.parse(localStorage.getItem('hiring_roles'))      || SEED_ROLES.map(function(r){return Object.assign({},r);});
+var appCandidates = JSON.parse(localStorage.getItem('hiring_candidates')) || SEED_CANDIDATES.map(function(c){return Object.assign({},c);});
+var appOffers     = JSON.parse(localStorage.getItem('hiring_offers'))     || SEED_OFFERS.map(function(o){return Object.assign({},o);});
+var appTeam       = JSON.parse(localStorage.getItem('hiring_team'))       || SEED_TEAM.map(function(t){return Object.assign({},t);});
+var appSlots      = JSON.parse(localStorage.getItem('hiring_slots'))      || SEED_SLOTS.map(function(s){return Object.assign({},s);});
+
+function saveState(){
+  localStorage.setItem('hiring_roles',      JSON.stringify(appRoles));
+  localStorage.setItem('hiring_candidates', JSON.stringify(appCandidates));
+  localStorage.setItem('hiring_offers',     JSON.stringify(appOffers));
+  localStorage.setItem('hiring_team',       JSON.stringify(appTeam));
+  localStorage.setItem('hiring_slots',      JSON.stringify(appSlots));
+}
+
+/* ── THEME ── */
+var html = document.documentElement;
+function applyTheme(dark){
+  if(dark){ html.classList.add('dark'); document.getElementById('themeIcon').className='fa-solid fa-sun'; document.getElementById('themeLabel').textContent='Light'; document.getElementById('sidebarLogo').src='logo-dark.png'; localStorage.setItem('rizz_theme','dark'); }
+  else { html.classList.remove('dark'); document.getElementById('themeIcon').className='fa-solid fa-moon'; document.getElementById('themeLabel').textContent='Dark'; document.getElementById('sidebarLogo').src='logo-light.png'; localStorage.setItem('rizz_theme','light'); }
+}
+document.getElementById('themeToggle').addEventListener('click',function(){ applyTheme(!html.classList.contains('dark')); });
+applyTheme(html.classList.contains('dark'));
+
+/* ── NAVIGATION ── */
+var sections = ['dashboard','post-role','pipeline','scheduling','offers','team','analytics'];
+var sectionTitles = { dashboard:'Dashboard','post-role':'Post a Role', pipeline:'Candidate Pipeline', scheduling:'Interview Scheduling', offers:'Offer Management', team:'Team Management', analytics:'Analytics' };
+var activeSection = 'dashboard';
+
+function navigateTo(section){
+  sections.forEach(function(s){
+    document.getElementById('sec-'+s).style.display='none';
+    var n=document.getElementById('nav-'+s); if(n) n.classList.remove('active');
+  });
+  var el=document.getElementById('sec-'+section);
+  if(!el) return;
+  el.style.display=''; el.classList.remove('fade-in'); void el.offsetWidth; el.classList.add('fade-in');
+  var nv=document.getElementById('nav-'+section); if(nv) nv.classList.add('active');
+  document.getElementById('topbar-title').textContent = sectionTitles[section]||section;
+  activeSection=section;
+  if(section==='dashboard')  renderDashboard();
+  if(section==='post-role')  renderPostRole();
+  if(section==='pipeline')   renderPipeline();
+  if(section==='scheduling') renderScheduling();
+  if(section==='offers')     renderOffers();
+  if(section==='team')       renderTeam();
+  if(section==='analytics')  renderAnalytics();
+}
+document.querySelectorAll('.nav-item[data-section]').forEach(function(el){
+  el.addEventListener('click',function(){ navigateTo(el.getAttribute('data-section')); });
+});
+
+/* ── GREETING ── */
+(function(){
+  var h=new Date().getHours(), g=h<12?'Good morning':h<17?'Good afternoon':'Good evening';
+  var name=currentUser?(currentUser.name||'Partner'):'Partner';
+  document.getElementById('topbar-greeting').textContent=g+', '+name;
+  document.getElementById('companyName').textContent=name;
+})();
+
+/* ── TOAST ── */
+var toastEl=document.getElementById('toast'), toastTimer;
+function showToast(msg){ toastEl.textContent=msg; toastEl.classList.add('show'); clearTimeout(toastTimer); toastTimer=setTimeout(function(){toastEl.classList.remove('show');},3000); }
+
+/* ── MODAL ── */
+var modalOverlay=document.getElementById('modal-overlay'), modalContent=document.getElementById('modal-content');
+function openModal(h){ modalContent.innerHTML=h; modalOverlay.classList.add('open'); }
+function closeModal(){ modalOverlay.classList.remove('open'); }
+modalOverlay.addEventListener('click',function(e){ if(e.target===modalOverlay) closeModal(); });
+
+/* ── HELPERS ── */
+function getRoleById(id){ return appRoles.find(function(r){return r.id===id;}); }
+function getCandidateById(id){ return appCandidates.find(function(c){return c.id===id;}); }
+function stageBadgeClass(s){ return {Applied:'badge-gray',Shortlisted:'badge-blue',Interview:'badge-purple',Offer:'badge-gold',Hired:'badge-green',Rejected:'badge-red'}[s]||'badge-gray'; }
+function trackColor(t){ if(t==='Designing') return '#D31F83'; if(t==='Video Editing') return '#8B5CF6'; if(t==='Tech & AI') return '#3B82F6'; if(t==='Creative Strategy') return '#EDA233'; return '#64748B'; }
+function uid(){ return 'x'+Math.random().toString(36).substr(2,9); }
+function formatDate(d){ if(!d) return '—'; return new Date(d+'T00:00:00').toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'}); }
+function daysLeft(e){ if(!e) return null; return Math.ceil((new Date(e)-new Date())/(1000*60*60*24)); }
+function hexToRgb(hex){ return parseInt(hex.slice(1,3),16)+','+parseInt(hex.slice(3,5),16)+','+parseInt(hex.slice(5,7),16); }
+
+/* ── DASHBOARD ── */
+function renderDashboard(){
+  var live=appRoles.filter(function(r){return r.status==='live';}).length;
+  var inInt=appCandidates.filter(function(c){return c.stage==='Interview';}).length;
+  var ofP=appOffers.filter(function(o){return o.status==='sent';}).length;
+  document.getElementById('stat-open-roles').textContent=live;
+  document.getElementById('stat-total-apps').textContent=appCandidates.length;
+  document.getElementById('stat-in-interview').textContent=inInt;
+  document.getElementById('stat-offers-pending').textContent=ofP;
+
+  var tot=appCandidates.length||1;
+  var fd=[
+    {label:'Applied',     count:appCandidates.length, color:'#64748B'},
+    {label:'Shortlisted', count:appCandidates.filter(function(c){return ['Shortlisted','Interview','Offer','Hired'].includes(c.stage);}).length, color:'#3B82F6'},
+    {label:'Interview',   count:appCandidates.filter(function(c){return ['Interview','Offer','Hired'].includes(c.stage);}).length, color:'#8B5CF6'},
+    {label:'Offer',       count:appCandidates.filter(function(c){return ['Offer','Hired'].includes(c.stage);}).length, color:'#EDA233'},
+    {label:'Hired',       count:appCandidates.filter(function(c){return c.stage==='Hired';}).length, color:'#10B981'},
+  ];
+  document.getElementById('funnel-chart').innerHTML=fd.map(function(r,i){
+    var pct=Math.round((r.count/tot)*100);
+    var drop=i>0?'-'+Math.round((1-r.count/(fd[i-1].count||1))*100)+'%':'';
+    return '<div class="funnel-row"><div class="funnel-label">'+r.label+'</div><div class="funnel-bar-bg"><div class="funnel-bar" style="width:'+pct+'%;background:'+r.color+';"><span>'+r.count+'</span></div></div><div class="funnel-drop" style="font-size:11px;color:var(--text-muted);">'+drop+'</div></div>';
+  }).join('');
+
+  document.getElementById('activity-feed').innerHTML=SEED_ACTIVITY.map(function(a){
+    return '<div class="activity-item"><div class="activity-dot" style="background:'+a.color+';"></div><div><div style="font-size:13px;color:var(--text-primary);">'+a.text+'</div><div style="font-size:11px;color:var(--text-muted);">'+a.time+'</div></div></div>';
+  }).join('');
+
+  document.getElementById('roles-table-body').innerHTML=appRoles.map(function(r){
+    var cnt=appCandidates.filter(function(c){return c.roleId===r.id;}).length;
+    return '<tr><td><strong>'+r.title+'</strong></td><td>&#x20B9;'+r.ctc+'/mo</td><td>'+r.location+'</td><td>'+r.tracks.map(function(t){return '<span class="badge badge-magenta" style="margin-right:3px;">'+t+'</span>';}).join('')+'</td><td>'+cnt+'</td><td><span class="badge '+(r.status==='live'?'badge-green':'badge-gray')+'">'+r.status+'</span></td><td><button class="btn-ghost" style="font-size:12px;" onclick="navigateTo(\'pipeline\')"><i class="fa-solid fa-eye"></i></button></td></tr>';
+  }).join('') || '<tr><td colspan="7" style="text-align:center;color:var(--text-muted);padding:24px;">No roles yet. <a href="#" onclick="navigateTo(\'post-role\');return false;" style="color:#D31F83;">Post one!</a></td></tr>';
+}
+
+/* ── POST A ROLE ── */
+function renderPostRole(){
+  var el=document.getElementById('sidebar-roles-list');
+  el.innerHTML=!appRoles.length?'<div>No roles posted yet.</div>':appRoles.map(function(r){
+    return '<div style="padding:8px 0;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;"><span class="badge '+(r.status==='live'?'badge-green':'badge-gray')+'" style="font-size:10px;">'+r.status+'</span><span style="color:var(--text-primary);font-weight:500;">'+r.title+'</span></div>';
+  }).join('');
+}
+
+function togglePill(cb){ var l=cb.closest('.track-pill'); if(cb.checked) l.classList.add('selected'); else l.classList.remove('selected'); }
+window.togglePill=togglePill;
+
+document.getElementById('postRoleForm').addEventListener('submit',function(e){
+  e.preventDefault();
+  var title=document.getElementById('rf-title').value.trim();
+  var ctc=document.getElementById('rf-ctc').value.trim();
+  var loc=document.getElementById('rf-location').value.trim();
+  if(!title||!ctc||!loc){ showToast('Please fill in Title, CTC, and Location.'); return; }
+  var tracks=Array.from(document.querySelectorAll('#sec-post-role .track-pill input:checked')).map(function(i){return i.value;});
+  var newRole={ id:'role-'+uid(), title:title, ctc:ctc, location:loc, description:document.getElementById('rf-desc').value.trim(), tracks:tracks.length?tracks:['—'], minScore:document.getElementById('rf-min-score').value?parseInt(document.getElementById('rf-min-score').value):null, openings:parseInt(document.getElementById('rf-openings').value)||1, status:'live', createdAt:new Date().toISOString().split('T')[0] };
+  appRoles.push(newRole); saveState();
+  var sel=document.getElementById('pipeline-role-filter'); if(sel){var o=document.createElement('option');o.value=newRole.id;o.textContent=newRole.title;sel.appendChild(o);}
+  var sr=document.getElementById('slot-role'); if(sr){var so=document.createElement('option');so.value=newRole.id;so.textContent=newRole.title;sr.appendChild(so);}
+  showToast('Role "'+title+'" published!');
+  e.target.reset();
+  document.querySelectorAll('.track-pill').forEach(function(p){p.classList.remove('selected');});
+  renderPostRole();
+});
+
+document.getElementById('previewRoleBtn').addEventListener('click',function(){
+  var title=document.getElementById('rf-title').value.trim()||'(untitled)';
+  var ctc=document.getElementById('rf-ctc').value.trim()||'—';
+  var loc=document.getElementById('rf-location').value.trim()||'—';
+  var desc=document.getElementById('rf-desc').value.trim()||'No description.';
+  var tracks=Array.from(document.querySelectorAll('#sec-post-role .track-pill input:checked')).map(function(i){return i.value;});
+  var openings=document.getElementById('rf-openings').value||1;
+  openModal('<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;"><div style="font-family:\'Darker Grotesque\',sans-serif;font-size:18px;font-weight:800;color:var(--text-primary);">Preview — What Students See</div><button onclick="closeModal()" class="btn-ghost"><i class="fa-solid fa-xmark"></i></button></div><div style="background:var(--bg-input);border-radius:14px;padding:20px;"><div style="font-family:\'Darker Grotesque\',sans-serif;font-size:22px;font-weight:900;color:var(--text-primary);">'+title+'</div><div style="display:flex;gap:10px;flex-wrap:wrap;margin:10px 0;"><span class="badge badge-magenta">&#x20B9;'+ctc+'/mo</span><span class="badge badge-blue">'+loc+'</span><span class="badge badge-gray">'+openings+' opening(s)</span></div>'+(tracks.length?'<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;">'+tracks.map(function(t){return '<span class="badge badge-magenta">'+t+'</span>';}).join('')+'</div>':'')+'<div style="font-size:13.5px;color:var(--text-muted);line-height:1.7;">'+desc+'</div></div><button class="btn-primary" style="margin-top:14px;width:100%;" onclick="closeModal()">Close Preview</button>');
+});
+document.getElementById('saveDraftBtn').addEventListener('click',function(){ showToast('Draft saved.'); });
+
+/* ── PIPELINE / KANBAN ── */
+function renderPipeline(){
+  var rf=document.getElementById('pipeline-role-filter');
+  while(rf.options.length>1) rf.remove(1);
+  appRoles.forEach(function(r){ var o=document.createElement('option');o.value=r.id;o.textContent=r.title;rf.appendChild(o); });
+  buildKanban();
+}
+function getFiltered(){
+  var rf=document.getElementById('pipeline-role-filter').value;
+  var tf=document.getElementById('pipeline-track-filter').value;
+  return appCandidates.filter(function(c){ return (rf==='all'||c.roleId===rf)&&(tf==='all'||c.track===tf); });
+}
+function getNext(s){ var i=KANBAN_STAGES.indexOf(s); return (i<0||i>=KANBAN_STAGES.length-1||KANBAN_STAGES[i+1]==='Rejected')?null:KANBAN_STAGES[i+1]; }
+function getPrev(s){ var i=KANBAN_STAGES.indexOf(s); return i<=0?null:KANBAN_STAGES[i-1]; }
+
+function buildKanban(){
+  var board=document.getElementById('kanban-board');
+  var candidates=getFiltered();
+  board.innerHTML=KANBAN_STAGES.map(function(stage){
+    var sc=candidates.filter(function(c){return c.stage===stage;});
+    return '<div class="kanban-col"><div class="kanban-col-title">'+stage+' <span class="kanban-col-count">'+sc.length+'</span></div>'+
+      sc.map(function(c){
+        var role=getRoleById(c.roleId);
+        var nxt=getNext(stage), prv=getPrev(stage);
+        var tc=trackColor(c.track); var rgb=hexToRgb(tc);
+        return '<div class="kanban-card" id="kc-'+c.id+'">'+'<div style="display:flex;justify-content:space-between;align-items:flex-start;"><div class="cname">'+c.name+'</div><div class="rizz-score">'+c.rizzScore+'</div></div>'+'<div class="meta">'+c.college+'</div>'+'<div style="margin:4px 0;"><span class="badge" style="background:rgba('+rgb+',0.12);color:'+tc+';font-size:10px;">'+c.track+'</span></div>'+(role?'<div class="meta" style="font-style:italic;">'+role.title+'</div>':'')+(c.mentorNote?'<div style="font-size:11px;color:var(--text-muted);margin-top:4px;border-top:1px solid var(--border);padding-top:4px;">'+c.mentorNote+'</div>':'')+'<div style="display:flex;gap:4px;margin-top:6px;flex-wrap:wrap;">'+(prv?'<button class="kmove-btn" onclick="moveCandidate(\''+c.id+'\',\''+prv+'\')"><i class="fa-solid fa-arrow-left fa-xs"></i></button>':'')+(nxt?'<button class="kmove-btn" onclick="moveCandidate(\''+c.id+'\',\''+nxt+'\')" >'+nxt+' <i class="fa-solid fa-arrow-right fa-xs"></i></button>':'')+'<button class="kmove-btn" onclick="viewProfile(\''+c.id+'\')" style="color:#D31F83;"><i class="fa-solid fa-user fa-xs"></i></button></div></div>';
+      }).join('')+'</div>';
+  }).join('');
+}
+
+function moveCandidate(id,toStage){
+  var c=getCandidateById(id); if(!c) return;
+  c.stage=toStage; saveState(); buildKanban();
+  document.getElementById('badge-pipeline').textContent=appCandidates.length;
+  showToast(c.name+' moved to '+toStage);
+  if(toStage==='Offer'){
+    setTimeout(function(){
+      openModal('<div style="text-align:center;padding:10px 0;"><div style="font-size:36px;margin-bottom:10px;">&#x1F4C4;</div><div style="font-family:\'Darker Grotesque\',sans-serif;font-size:18px;font-weight:800;color:var(--text-primary);margin-bottom:6px;">'+c.name+' is in Offer stage!</div><div style="font-size:13.5px;color:var(--text-muted);margin-bottom:18px;">Would you like to generate an offer letter now?</div><div style="display:flex;gap:10px;justify-content:center;"><button class="btn-primary" onclick="closeModal();navigateTo(\'offers\');setTimeout(function(){promptNewOffer(\''+c.id+'\')},250);">Generate Offer</button><button class="btn-secondary" onclick="closeModal()">Later</button></div></div>');
+    },400);
+  }
+}
+window.moveCandidate=moveCandidate;
+
+function viewProfile(id){
+  var c=getCandidateById(id); if(!c) return;
+  var role=getRoleById(c.roleId); var nxt=getNext(c.stage);
+  openModal('<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;"><div style="font-family:\'Darker Grotesque\',sans-serif;font-size:18px;font-weight:800;color:var(--text-primary);">Candidate Profile</div><button onclick="closeModal()" class="btn-ghost"><i class="fa-solid fa-xmark"></i></button></div>'+'<div style="display:flex;align-items:center;gap:14px;margin-bottom:16px;"><div style="width:50px;height:50px;border-radius:50%;background:linear-gradient(135deg,#D31F83,#EDA233);display:flex;align-items:center;justify-content:center;color:white;font-family:\'Darker Grotesque\',sans-serif;font-size:20px;font-weight:900;">'+c.name.charAt(0)+'</div><div><div style="font-family:\'Darker Grotesque\',sans-serif;font-size:19px;font-weight:800;color:var(--text-primary);">'+c.name+'</div><div style="font-size:13px;color:var(--text-muted);">'+c.college+' &middot; '+c.track+'</div></div><div style="margin-left:auto;text-align:center;"><div style="font-family:\'Darker Grotesque\',sans-serif;font-size:36px;font-weight:900;color:#D31F83;">'+c.rizzScore+'</div><div style="font-size:11px;color:var(--text-muted);">Rizz Score</div></div></div>'+'<div style="background:var(--bg-input);border-radius:10px;padding:14px;margin-bottom:12px;"><div style="font-size:11.5px;font-weight:700;color:var(--text-muted);margin-bottom:4px;">APPLIED FOR</div><div style="color:var(--text-primary);font-weight:600;">'+(role?role.title:'—')+'</div>'+(role?'<div style="font-size:12px;color:var(--text-muted);">&#x20B9;'+role.ctc+'/mo &middot; '+role.location+'</div>':'')+'</div>'+'<div style="background:var(--bg-input);border-radius:10px;padding:14px;margin-bottom:14px;"><div style="font-size:11.5px;font-weight:700;color:var(--text-muted);margin-bottom:6px;">MENTOR EVALUATION</div><div style="font-size:13.5px;color:var(--text-primary);font-style:italic;">"'+c.mentorNote+'"</div></div>'+'<div style="display:flex;align-items:center;gap:8px;"><span class="badge '+stageBadgeClass(c.stage)+'">'+c.stage+'</span></div>'+'<div style="display:flex;gap:8px;margin-top:14px;">'+(nxt?'<button class="btn-primary" onclick="closeModal();moveCandidate(\''+c.id+'\',\''+nxt+'\')">Move to '+nxt+'</button>':'')+'<button class="btn-ghost" style="color:#EF4444;" onclick="closeModal();moveCandidate(\''+c.id+'\',\'Rejected\')"><i class="fa-solid fa-xmark" style="margin-right:5px;"></i>Reject</button></div>');
+}
+window.viewProfile=viewProfile;
+
+document.getElementById('pipeline-role-filter').addEventListener('change',buildKanban);
+document.getElementById('pipeline-track-filter').addEventListener('change',buildKanban);
+document.getElementById('bulkShortlistBtn').addEventListener('click',function(){
+  var cnt=0; getFiltered().forEach(function(c){if(c.stage==='Applied'){c.stage='Shortlisted';cnt++;}});
+  if(!cnt){showToast('No Applied candidates to shortlist.');return;} saveState();buildKanban();showToast(cnt+' candidate(s) shortlisted!');
+});
+document.getElementById('bulkRejectBtn').addEventListener('click',function(){
+  if(!confirm('Reject all Applied candidates?')) return;
+  var cnt=0; getFiltered().forEach(function(c){if(c.stage==='Applied'){c.stage='Rejected';cnt++;}});
+  saveState();buildKanban();showToast(cnt+' candidate(s) rejected.');
+});
+
+/* ── SCHEDULING ── */
+var calY=new Date().getFullYear(), calM=new Date().getMonth();
+function renderScheduling(){
+  var sr=document.getElementById('slot-role'); while(sr.options.length>1) sr.remove(1);
+  appRoles.forEach(function(r){var o=document.createElement('option');o.value=r.id;o.textContent=r.title;sr.appendChild(o);});
+  renderCal(); renderUpcoming();
+}
+var months=['January','February','March','April','May','June','July','August','September','October','November','December'];
+function renderCal(){
+  document.getElementById('cal-month-label').textContent=months[calM]+' '+calY;
+  var grid=document.getElementById('cal-grid'); grid.innerHTML='';
+  var first=new Date(calY,calM,1).getDay(), dim=new Date(calY,calM+1,0).getDate(), today=new Date();
+  for(var i=0;i<first;i++){grid.appendChild(document.createElement('div'));}
+  for(var d=1;d<=dim;d++){
+    var ds=calY+'-'+String(calM+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
+    var hasSlot=appSlots.some(function(s){return s.date===ds;});
+    var isToday=today.getFullYear()===calY&&today.getMonth()===calM&&today.getDate()===d;
+    var isPast=new Date(ds)<new Date(today.toDateString());
+    var cell=document.createElement('div');
+    cell.className='cal-day'+(hasSlot?' has-slot':'')+(isToday?' today':'')+(isPast?' past':'');
+    cell.textContent=d; cell.dataset.date=ds;
+    cell.addEventListener('click',function(){document.getElementById('slot-date').value=this.dataset.date;});
+    grid.appendChild(cell);
+  }
+}
+document.getElementById('cal-prev').addEventListener('click',function(){calM--;if(calM<0){calM=11;calY--;}renderCal();});
+document.getElementById('cal-next').addEventListener('click',function(){calM++;if(calM>11){calM=0;calY++;}renderCal();});
+document.getElementById('addSlotBtn').addEventListener('click',function(){
+  var date=document.getElementById('slot-date').value;
+  var times=document.getElementById('slot-times').value.split(',').map(function(t){return t.trim();}).filter(Boolean);
+  var role=document.getElementById('slot-role').value;
+  if(!date||!times.length){showToast('Please select a date and enter times.');return;}
+  var ex=appSlots.find(function(s){return s.date===date;});
+  if(ex){times.forEach(function(t){if(!ex.times.includes(t)) ex.times.push(t);});}
+  else{appSlots.push({date:date,times:times,roleId:role,booked:[]});}
+  saveState();renderCal();renderUpcoming();showToast('Slots added for '+formatDate(date));
+  document.getElementById('slot-date').value='';document.getElementById('slot-times').value='';
+});
+function renderUpcoming(){
+  var el=document.getElementById('upcoming-interviews');
+  var sorted=appSlots.slice().sort(function(a,b){return a.date.localeCompare(b.date);});
+  el.innerHTML=!sorted.length?'<div>No slots added yet.</div>':sorted.map(function(s){
+    return '<div style="padding:10px 0;border-bottom:1px solid var(--border);"><div style="font-weight:600;color:var(--text-primary);font-size:13.5px;">'+formatDate(s.date)+'</div><div style="font-size:12px;margin-top:3px;">'+s.times.map(function(t){return '<span class="badge '+(s.booked.includes(t)?'badge-magenta':'badge-gray')+'" style="margin-right:4px;">'+t+(s.booked.includes(t)?' &#x1F512;':'')+'</span>';}).join('')+'</div></div>';
+  }).join('');
+}
+
+/* ── OFFERS ── */
+function renderOffers(){
+  var el=document.getElementById('offers-list');
+  if(!appOffers.length){el.innerHTML='<div style="text-align:center;padding:40px;color:var(--text-muted);">No offers yet.</div>';return;}
+  el.innerHTML=appOffers.map(function(o){
+    var days=daysLeft(o.expiresAt);
+    var sc={sent:'#3B82F6',accepted:'#10B981',declined:'#EF4444',expired:'#64748B'}[o.status]||'#64748B';
+    var daysHtml=o.status==='sent'&&days!==null?'<span style="font-size:12px;color:'+(days<=2?'#EF4444':'#EDA233')+';margin-left:8px;"><i class="fa-solid fa-hourglass fa-xs"></i> '+(days>0?days+'d left':'Expires today')+'</span>':'';
+    return '<div class="card" style="padding:18px 20px;border-left:3px solid #D31F83;"><div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;"><div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#D31F83,#8B5CF6);display:flex;align-items:center;justify-content:center;color:white;font-family:\'Darker Grotesque\',sans-serif;font-size:16px;font-weight:900;flex-shrink:0;">'+o.candidateName.charAt(0)+'</div><div style="flex:1;"><div style="font-family:\'Darker Grotesque\',sans-serif;font-size:17px;font-weight:800;color:var(--text-primary);">'+o.candidateName+'</div><div style="font-size:13px;color:var(--text-muted);">'+o.roleTitle+' &middot; &#x20B9;'+o.ctc+'/mo &middot; '+o.location+'</div></div><div style="text-align:right;"><span class="badge" style="background:rgba('+hexToRgb(sc)+',0.12);color:'+sc+';">'+o.status.charAt(0).toUpperCase()+o.status.slice(1)+'</span>'+daysHtml+'<div style="font-size:11.5px;color:var(--text-muted);margin-top:4px;">Sent '+formatDate(o.sentAt)+' &middot; Exp '+formatDate(o.expiresAt)+'</div></div></div><div style="display:flex;gap:8px;margin-top:10px;"><button class="btn-ghost" style="font-size:12px;" onclick="viewOfferLetter(\''+o.id+'\')"><i class="fa-solid fa-file-lines" style="margin-right:5px;"></i>View Letter</button>'+(o.status==='sent'?'<button class="btn-ghost" style="font-size:12px;" onclick="extendOffer(\''+o.id+'\')"><i class="fa-solid fa-calendar-plus" style="margin-right:5px;"></i>Extend</button>':'')+(o.status==='sent'?'<button class="btn-ghost" style="font-size:12px;color:#EF4444;" onclick="revokeOffer(\''+o.id+'\')"><i class="fa-solid fa-ban" style="margin-right:5px;"></i>Revoke</button>':'')+'</div></div>';
+  }).join('');
+}
+document.getElementById('newOfferBtn').addEventListener('click',function(){promptNewOffer(null);});
+function promptNewOffer(candidateId){
+  var inOffer=appCandidates.filter(function(c){return c.stage==='Offer';});
+  if(!inOffer.length){openModal('<div style="text-align:center;padding:20px;color:var(--text-muted);">No candidates in Offer stage yet.<br>Move a candidate from the Pipeline first.<br><br><button class="btn-secondary" onclick="closeModal()">OK</button></div>');return;}
+  var opts=inOffer.map(function(c){return '<option value="'+c.id+'"'+(c.id===candidateId?' selected':'')+'>'+c.name+' — '+c.track+'</option>';}).join('');
+  openModal('<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;"><div style="font-family:\'Darker Grotesque\',sans-serif;font-size:18px;font-weight:800;color:var(--text-primary);">Generate Offer Letter</div><button onclick="closeModal()" class="btn-ghost"><i class="fa-solid fa-xmark"></i></button></div><div style="display:flex;flex-direction:column;gap:12px;"><div><label class="form-label">Candidate</label><select class="form-input" id="offer-cand-sel">'+opts+'</select></div><div><label class="form-label">Expiry (days)</label><input class="form-input" id="offer-expiry" type="number" value="7" min="1" max="60"/></div></div><button class="btn-primary" style="width:100%;margin-top:16px;" onclick="createOffer()">Generate &amp; Send</button>');
+}
+window.promptNewOffer=promptNewOffer;
+function createOffer(){
+  var sel=document.getElementById('offer-cand-sel'); if(!sel) return;
+  var c=getCandidateById(sel.value); if(!c) return;
+  var role=getRoleById(c.roleId);
+  var exp=parseInt(document.getElementById('offer-expiry').value)||7;
+  var today=new Date(), exDate=new Date(today); exDate.setDate(exDate.getDate()+exp);
+  var no={id:'o-'+uid(),candidateId:c.id,candidateName:c.name,roleId:c.roleId,roleTitle:role?role.title:'—',ctc:role?role.ctc:'—',location:role?role.location:'—',status:'sent',sentAt:today.toISOString().split('T')[0],expiresAt:exDate.toISOString().split('T')[0]};
+  appOffers.push(no); saveState(); closeModal(); renderOffers();
+  document.getElementById('badge-offers').textContent=appOffers.filter(function(o){return o.status==='sent';}).length;
+  showToast('Offer sent to '+c.name+'!');
+}
+window.createOffer=createOffer;
+function viewOfferLetter(oid){
+  var o=appOffers.find(function(x){return x.id===oid;}); if(!o) return;
+  var cn=currentUser?(currentUser.name||'ABC Company'):'ABC Company';
+  var letter='Date: '+formatDate(o.sentAt)+'\n\nDear '+o.candidateName+',\n\nWe are delighted to extend an offer for the position of '+o.roleTitle+' at '+cn+'.\n\nRole Details:\n  Position   : '+o.roleTitle+'\n  CTC/Stipend: \u20B9'+o.ctc+' per month\n  Location   : '+o.location+'\n  Offer valid: Until '+formatDate(o.expiresAt)+'\n\nYour Rizz Score and evaluation by our mentor panel placed you among our top candidates. We believe you will make a significant contribution to our team.\n\nPlease accept or decline this offer via your RIZZ Student Console before the expiry date.\n\nWarm regards,\n'+cn+'\nHiring Team';
+  openModal('<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;"><div style="font-family:\'Darker Grotesque\',sans-serif;font-size:18px;font-weight:800;color:var(--text-primary);">Offer Letter</div><button onclick="closeModal()" class="btn-ghost"><i class="fa-solid fa-xmark"></i></button></div><div id="offer-letter-preview">'+letter+'</div><button class="btn-primary" style="margin-top:14px;" onclick="closeModal()">Close</button>');
+}
+window.viewOfferLetter=viewOfferLetter;
+function extendOffer(oid){
+  var o=appOffers.find(function(x){return x.id===oid;}); if(!o) return;
+  openModal('<div style="font-family:\'Darker Grotesque\',sans-serif;font-size:18px;font-weight:800;color:var(--text-primary);margin-bottom:14px;">Extend Offer</div><label class="form-label">Reason</label><input class="form-input" id="ext-reason" placeholder="e.g. Candidate requested more time" style="margin-bottom:12px;"/><label class="form-label">New Expiry Date</label><input class="form-input" id="ext-date" type="date" value="'+o.expiresAt+'" style="margin-bottom:16px;"/><div style="display:flex;gap:8px;"><button class="btn-primary" onclick="doExtend(\''+oid+'\')">Extend</button><button class="btn-secondary" onclick="closeModal()">Cancel</button></div>');
+}
+window.extendOffer=extendOffer;
+function doExtend(oid){
+  var date=document.getElementById('ext-date').value; if(!date){showToast('Please select a date.');return;}
+  var o=appOffers.find(function(x){return x.id===oid;}); if(!o) return;
+  o.expiresAt=date; o.extensionReason=document.getElementById('ext-reason').value.trim();
+  saveState();closeModal();renderOffers();showToast('Offer extended to '+formatDate(date));
+}
+window.doExtend=doExtend;
+function revokeOffer(oid){
+  if(!confirm('Revoke this offer?')) return;
+  var o=appOffers.find(function(x){return x.id===oid;}); if(!o) return;
+  o.status='expired'; saveState();renderOffers();showToast('Offer revoked.');
+  document.getElementById('badge-offers').textContent=appOffers.filter(function(o){return o.status==='sent';}).length;
+}
+window.revokeOffer=revokeOffer;
+
+/* ── TEAM ── */
+function renderTeam(){
+  document.getElementById('team-table-body').innerHTML=appTeam.map(function(m){
+    return '<tr><td><div style="display:flex;align-items:center;gap:8px;"><div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#D31F83,#EDA233);display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:13px;flex-shrink:0;">'+m.name.charAt(0)+'</div><span style="font-weight:600;">'+m.name+'</span></div></td><td style="color:var(--text-muted);">'+m.email+'</td><td><span class="badge '+(m.role==='admin'?'badge-magenta':'badge-blue')+'">'+m.role+'</span></td><td style="font-size:12px;color:var(--text-muted);">'+(m.assignedRoles||[]).join(', ')+'</td><td style="color:var(--text-muted);font-size:12.5px;">'+m.lastActive+'</td><td>'+(m.id!=='t001'?'<button class="btn-ghost" style="color:#EF4444;" onclick="removeMember(\''+m.id+'\')"><i class="fa-solid fa-trash fa-xs"></i></button>':'<span style="font-size:11px;color:var(--text-muted);">Owner</span>')+'</td></tr>';
+  }).join('');
+  var log=[{e:'👤',t:'Riya Desai viewed Aarav Mehta\'s profile.',tm:'3h ago'},{e:'✅',t:'Nikhil Verma shortlisted Ishaan Gupta.',tm:'1d ago'},{e:'📧',t:'Riya Desai sent invite to Priya Sharma.',tm:'2d ago'},{e:'➕',t:'Nikhil Verma added to team.',tm:'5d ago'}];
+  document.getElementById('team-activity-log').innerHTML=log.map(function(l){return '<div style="display:flex;gap:10px;padding:9px 0;border-bottom:1px solid var(--border);"><span style="font-size:16px;">'+l.e+'</span><div><div style="font-size:13px;color:var(--text-primary);">'+l.t+'</div><div style="font-size:11px;color:var(--text-muted);">'+l.tm+'</div></div></div>';}).join('');
+}
+document.getElementById('addMemberBtn').addEventListener('click',function(){
+  openModal('<div style="font-family:\'Darker Grotesque\',sans-serif;font-size:18px;font-weight:800;color:var(--text-primary);margin-bottom:16px;">Add Recruiter</div><div style="display:flex;flex-direction:column;gap:12px;"><div><label class="form-label">Full Name</label><input class="form-input" id="tm-name" placeholder="e.g. Priya Sharma"/></div><div><label class="form-label">Email</label><input class="form-input" id="tm-email" type="email" placeholder="e.g. priya@company.com"/></div><div><label class="form-label">Assign Roles (comma-separated)</label><input class="form-input" id="tm-roles" placeholder="e.g. Brand Designer, Video Editor"/></div></div><div style="display:flex;gap:8px;margin-top:16px;"><button class="btn-primary" onclick="addMember()">Add</button><button class="btn-secondary" onclick="closeModal()">Cancel</button></div>');
+});
+function addMember(){
+  var n=document.getElementById('tm-name').value.trim(), e=document.getElementById('tm-email').value.trim(), r=document.getElementById('tm-roles').value.trim();
+  if(!n||!e){showToast('Name and email required.');return;}
+  appTeam.push({id:'t-'+uid(),name:n,email:e,role:'recruiter',assignedRoles:r?r.split(',').map(function(s){return s.trim();}): [],lastActive:'Just now'});
+  saveState();closeModal();renderTeam();showToast(n+' added to team.');
+}
+window.addMember=addMember;
+function removeMember(id){
+  if(!confirm('Remove this team member?')) return;
+  appTeam=appTeam.filter(function(m){return m.id!==id;}); saveState();renderTeam();showToast('Member removed.');
+}
+window.removeMember=removeMember;
+
+/* ── ANALYTICS ── */
+function renderAnalytics(){
+  var tthData=[{r:'Brand Designer',d:21},{r:'Video Editor',d:16},{r:'AI Tools Spec.',d:14},{r:'Creative Strat.',d:25}];
+  var maxD=Math.max.apply(null,tthData.map(function(d){return d.d;}));
+  document.getElementById('tth-chart').innerHTML=tthData.map(function(d){
+    return '<div><div style="display:flex;justify-content:space-between;font-size:12.5px;color:var(--text-muted);margin-bottom:4px;"><span>'+d.r+'</span><span style="font-weight:600;color:var(--text-primary);">'+d.d+'d</span></div><div class="funnel-bar-bg" style="height:14px;"><div class="funnel-bar" style="width:'+Math.round(d.d/maxD*100)+'%;background:linear-gradient(90deg,#D31F83,#EDA233);height:100%;"></div></div></div>';
+  }).join('');
+  var src=[{c:'Jain',n:28,col:'#D31F83'},{c:'CBALC',n:19,col:'#EDA233'}];
+  var tot=src.reduce(function(s,d){return s+d.n;},0);
+  document.getElementById('source-chart').innerHTML=src.map(function(d){
+    return '<div><div style="display:flex;justify-content:space-between;font-size:12.5px;color:var(--text-muted);margin-bottom:4px;"><span>'+d.c+'</span><span style="font-weight:600;color:var(--text-primary);">'+d.n+' ('+Math.round(d.n/tot*100)+'%)</span></div><div class="funnel-bar-bg" style="height:14px;"><div class="funnel-bar" style="width:'+Math.round(d.n/tot*100)+'%;background:'+d.col+';height:100%;"></div></div></div>';
+  }).join('');
+  document.getElementById('history-table-body').innerHTML=[
+    {cy:'2026 — Cycle 1',p:4,a:47,h:7,ap:'64%'},
+    {cy:'2025 — Cycle 2',p:3,a:31,h:4,ap:'57%'},
+    {cy:'2025 — Cycle 1',p:2,a:18,h:2,ap:'66%'},
+  ].map(function(h){return '<tr><td>'+h.cy+'</td><td>'+h.p+'</td><td>'+h.a+'</td><td><span class="badge badge-green">'+h.h+'</span></td><td>'+h.ap+'</td></tr>';}).join('');
+}
+
+/* ── LOGOUT ── */
+document.getElementById('logoutBtn').addEventListener('click',function(){
+  localStorage.removeItem('currentUser'); sessionStorage.removeItem('currentUser'); window.location.href='index.html';
+});
+document.getElementById('sidebarToggle').addEventListener('click',function(){document.getElementById('sidebar').classList.toggle('open');});
+
+/* ── INIT ── */
+appRoles.forEach(function(r){
+  var sel=document.getElementById('pipeline-role-filter'); var o=document.createElement('option');o.value=r.id;o.textContent=r.title;sel.appendChild(o);
+});
+document.getElementById('slot-date').value=new Date().toISOString().split('T')[0];
+document.getElementById('badge-pipeline').textContent=appCandidates.length;
+document.getElementById('badge-offers').textContent=appOffers.filter(function(o){return o.status==='sent';}).length;
+// Fix team owner name from logged-in user
+if(currentUser && appTeam[0]){ appTeam[0].name=currentUser.name||'ABC Company'; appTeam[0].email=currentUser.email||'hr@abc.com'; }
+
+navigateTo('dashboard');
+</script>
+</body>
+</html>

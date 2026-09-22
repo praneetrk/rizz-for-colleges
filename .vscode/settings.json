@@ -1,0 +1,9 @@
+{
+  "liveServer.settings.ignoreFiles": [
+    "**/uploads/**",
+    "**/*.json",
+    "**/*.xlsx",
+    "**/*.meta.json",
+    "**/*.log"
+  ]
+}

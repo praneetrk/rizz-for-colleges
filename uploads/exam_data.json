@@ -1,0 +1,983 @@
+{
+  "settings": {
+    "examName": "RIZZ Foundation Pre-Test 2026",
+    "examId": "PRE-2026-01",
+    "durationMinutes": 60,
+    "totalMarks": 21,
+    "passingScore": 50,
+    "status": "Published",
+    "assignmentStrategy": "round-robin",
+    "scheduledAt": null
+  },
+  "series": {
+    "A": {
+      "production": [
+        {
+          "id": "q_a_p1",
+          "type": "mcq",
+          "text": "Which visual composition principle recommends placing focal subjects along the lines or intersections of a 3×3 grid?",
+          "marks": 1,
+          "options": {
+            "A": "Golden Ratio Spiral",
+            "B": "Rule of Thirds",
+            "C": "Radial Symmetry",
+            "D": "Dutch Angle"
+          },
+          "correctAnswer": "B",
+          "track": "production",
+          "rubric": ""
+        },
+        {
+          "id": "q_a_p2",
+          "type": "mcq",
+          "text": "In professional video editing, what defines a \"J-Cut\"?",
+          "marks": 1,
+          "options": {
+            "A": "Audio from the incoming clip begins before the video transitions",
+            "B": "Video transitions before the audio cuts",
+            "C": "Audio and video cut simultaneously at a marker",
+            "D": "A jump cut accompanied by audio fade"
+          },
+          "correctAnswer": "A",
+          "track": "production",
+          "rubric": ""
+        },
+        {
+          "id": "q_a_p3",
+          "type": "mcq",
+          "text": "In a standard three-point lighting setup, what is the primary function of the Key Light?",
+          "marks": 1,
+          "options": {
+            "A": "Fill in deep shadows on the subject",
+            "B": "Provide the primary source of illumination and exposure on the subject",
+            "C": "Separate the subject from the background",
+            "D": "Light the green screen evenly"
+          },
+          "correctAnswer": "B",
+          "track": "production",
+          "rubric": ""
+        },
+        {
+          "id": "q_a_p4",
+          "type": "mcq",
+          "text": "What video frame rate is standard for achieving a traditional cinematic look in film and narrative video?",
+          "marks": 1,
+          "options": {
+            "A": "24 fps",
+            "B": "60 fps",
+            "C": "120 fps",
+            "D": "15 fps"
+          },
+          "correctAnswer": "A",
+          "track": "production",
+          "rubric": ""
+        },
+        {
+          "id": "q_a_p5",
+          "type": "mcq",
+          "text": "In graphic design, what does \"Kerning\" refer to?",
+          "marks": 1,
+          "options": {
+            "A": "The vertical spacing between lines of text",
+            "B": "The horizontal adjustment of space between individual character pairs",
+            "C": "The overall size of a typeface",
+            "D": "The opacity of font glyphs"
+          },
+          "correctAnswer": "B",
+          "track": "production",
+          "rubric": ""
+        },
+        {
+          "id": "q_a_p6",
+          "type": "mcq",
+          "text": "Which color harmony uses colors located directly opposite each other on the color wheel?",
+          "marks": 1,
+          "options": {
+            "A": "Analogous",
+            "B": "Monochromatic",
+            "C": "Complementary",
+            "D": "Triadic"
+          },
+          "correctAnswer": "C",
+          "track": "production",
+          "rubric": ""
+        },
+        {
+          "id": "q_a_p7",
+          "type": "mcq",
+          "text": "In digital audio recording for video, what does clipping (peaking above 0 dBFS) cause?",
+          "marks": 1,
+          "options": {
+            "A": "Enhanced bass response",
+            "B": "Harsh digital distortion and lost waveform data",
+            "C": "Automatic noise cancellation",
+            "D": "Stereo widening"
+          },
+          "correctAnswer": "B",
+          "track": "production",
+          "rubric": ""
+        }
+      ],
+      "strategy": [
+        {
+          "id": "q_a_s1",
+          "type": "mcq",
+          "text": "Which growth metric calculates the total commercial cost incurred to acquire a single paying customer?",
+          "marks": 1,
+          "options": {
+            "A": "Return On Ad Spend (ROAS)",
+            "B": "Customer Lifetime Value (LTV)",
+            "C": "Customer Acquisition Cost (CAC)",
+            "D": "Click-Through Rate (CTR)"
+          },
+          "correctAnswer": "C",
+          "track": "strategy",
+          "rubric": ""
+        },
+        {
+          "id": "q_a_s2",
+          "type": "mcq",
+          "text": "In inbound marketing strategy, what is the core objective of Top-of-Funnel (TOFU) content?",
+          "marks": 1,
+          "options": {
+            "A": "Direct sales contract closing",
+            "B": "Immediate high-friction checkout",
+            "C": "Brand discovery, audience education, and problem awareness",
+            "D": "Account deactivation surveys"
+          },
+          "correctAnswer": "C",
+          "track": "strategy",
+          "rubric": ""
+        },
+        {
+          "id": "q_a_s3",
+          "type": "mcq",
+          "text": "In digital copywriting, what does the AIDA copywriting framework stand for?",
+          "marks": 1,
+          "options": {
+            "A": "Action, Interest, Demand, Acceleration",
+            "B": "Attention, Interest, Desire, Action",
+            "C": "Audience, Intent, Delivery, Authority",
+            "D": "Analysis, Insight, Design, Adoption"
+          },
+          "correctAnswer": "B",
+          "track": "strategy",
+          "rubric": ""
+        },
+        {
+          "id": "q_a_s4",
+          "type": "mcq",
+          "text": "Which metric measures the percentage of users who take a desired action (e.g. signup or purchase) after viewing a landing page?",
+          "marks": 1,
+          "options": {
+            "A": "Bounce Rate",
+            "B": "Conversion Rate",
+            "C": "Churn Rate",
+            "D": "Impression Frequency"
+          },
+          "correctAnswer": "B",
+          "track": "strategy",
+          "rubric": ""
+        },
+        {
+          "id": "q_a_s5",
+          "type": "mcq",
+          "text": "In organic social media algorithm strategy, what signal contributes most to expanding organic reach to new non-follower audiences?",
+          "marks": 1,
+          "options": {
+            "A": "High saves, shares, and watch-time completion",
+            "B": "Posting at exactly 3:00 AM",
+            "C": "Using only single-word captions",
+            "D": "Disabling comment notifications"
+          },
+          "correctAnswer": "A",
+          "track": "strategy",
+          "rubric": ""
+        },
+        {
+          "id": "q_a_s6",
+          "type": "mcq",
+          "text": "What is \"Customer Lifetime Value\" (LTV / CLV)?",
+          "marks": 1,
+          "options": {
+            "A": "The net total revenue a business can expect from a single customer account throughout their relationship",
+            "B": "The cost of running Google ads for one month",
+            "C": "The average hourly wage of customer support staff",
+            "D": "The percentage of customers who unsubscribe in 30 days"
+          },
+          "correctAnswer": "A",
+          "track": "strategy",
+          "rubric": ""
+        },
+        {
+          "id": "q_a_s7",
+          "type": "mcq",
+          "text": "In digital advertising, what does ROAS measure?",
+          "marks": 1,
+          "options": {
+            "A": "Return On Ad Spend (Revenue generated per dollar spent on advertising)",
+            "B": "Rate of Active Subscribers",
+            "C": "Reach of Audience Segments",
+            "D": "Ratio of Assets to Sales"
+          },
+          "correctAnswer": "A",
+          "track": "strategy",
+          "rubric": ""
+        }
+      ],
+      "tech": [
+        {
+          "id": "q_a_t1",
+          "type": "mcq",
+          "text": "What primary role does structured schema markup (JSON-LD) serve in modern SEO and Answer Engine Optimization (AEO)?",
+          "marks": 1,
+          "options": {
+            "A": "Compressing PNG and WebP images",
+            "B": "Providing explicit machine-readable semantic context to search engines and AI agents",
+            "C": "Encrypting user passwords in local storage",
+            "D": "Compiling CSS into bytecode"
+          },
+          "correctAnswer": "B",
+          "track": "tech",
+          "rubric": ""
+        },
+        {
+          "id": "q_a_t2",
+          "type": "mcq",
+          "text": "In modern web development and automation workflows, what is an outgoing webhook?",
+          "marks": 1,
+          "options": {
+            "A": "A manual database backup tool",
+            "B": "An automated HTTP POST event notification sent to a destination URL when an event occurs",
+            "C": "A local CSS layout framework",
+            "D": "A desktop antivirus scanner"
+          },
+          "correctAnswer": "B",
+          "track": "tech",
+          "rubric": ""
+        },
+        {
+          "id": "q_a_t3",
+          "type": "mcq",
+          "text": "In Generative AI and vector search systems, what do text embeddings represent?",
+          "marks": 1,
+          "options": {
+            "A": "Raw HTML DOM nodes",
+            "B": "High-dimensional numerical vectors capturing semantic meaning of words and text",
+            "C": "Base64 image strings",
+            "D": "Encrypted SQL queries"
+          },
+          "correctAnswer": "B",
+          "track": "tech",
+          "rubric": ""
+        },
+        {
+          "id": "q_a_t4",
+          "type": "mcq",
+          "text": "What HTTP method is typically used in RESTful APIs to create a new resource on the server?",
+          "marks": 1,
+          "options": {
+            "A": "GET",
+            "B": "POST",
+            "C": "DELETE",
+            "D": "HEAD"
+          },
+          "correctAnswer": "B",
+          "track": "tech",
+          "rubric": ""
+        },
+        {
+          "id": "q_a_t5",
+          "type": "mcq",
+          "text": "In modern frontend web architecture, what is the Document Object Model (DOM)?",
+          "marks": 1,
+          "options": {
+            "A": "A programming interface for HTML and XML documents representing the page structure as a tree of nodes",
+            "B": "A backend PostgreSQL database table",
+            "C": "A secure DNS routing protocol",
+            "D": "A CSS color palette standard"
+          },
+          "correctAnswer": "A",
+          "track": "tech",
+          "rubric": ""
+        },
+        {
+          "id": "q_a_t6",
+          "type": "mcq",
+          "text": "What is Generative Engine Optimization (GEO)?",
+          "marks": 1,
+          "options": {
+            "A": "Optimizing digital content and citations to be cited and surfaced accurately by AI search engines like ChatGPT and Perplexity",
+            "B": "Generating random CSS grid layouts",
+            "C": "Geolocation GPS tracking in mobile apps",
+            "D": "Generating automated SQL database migrations"
+          },
+          "correctAnswer": "A",
+          "track": "tech",
+          "rubric": ""
+        },
+        {
+          "id": "q_a_t7",
+          "type": "mcq",
+          "text": "In AI agent orchestration and vibe coding, what is Retrieval-Augmented Generation (RAG)?",
+          "marks": 1,
+          "options": {
+            "A": "Rendering animation frames on GPUs",
+            "B": "A framework that fetches relevant authoritative documents from a knowledge base to ground LLM responses",
+            "C": "A network firewall protocol",
+            "D": "A minification tool for JavaScript bundles"
+          },
+          "correctAnswer": "B",
+          "track": "tech",
+          "rubric": ""
+        }
+      ]
+    },
+    "B": {
+      "production": [
+        {
+          "id": "q_b_p1",
+          "type": "mcq",
+          "text": "Which camera shutter speed rule is standard in cinematic filmmaking for natural motion blur at 24 frames per second?",
+          "marks": 1,
+          "options": {
+            "A": "1/24 sec",
+            "B": "1/48 sec (180-degree shutter rule)",
+            "C": "1/250 sec",
+            "D": "1/10 sec"
+          },
+          "correctAnswer": "B",
+          "track": "production",
+          "rubric": ""
+        },
+        {
+          "id": "q_b_p2",
+          "type": "mcq",
+          "text": "In digital graphic design, what color space is standard for digital screens versus commercial offset print?",
+          "marks": 1,
+          "options": {
+            "A": "CMYK for screens, RGB for print",
+            "B": "RGB for screens, CMYK for print",
+            "C": "Pantone for screens, Hex for print",
+            "D": "Grayscale for both"
+          },
+          "correctAnswer": "B",
+          "track": "production",
+          "rubric": ""
+        },
+        {
+          "id": "q_b_p3",
+          "type": "mcq",
+          "text": "In professional video color grading, what is the primary function of a 3D LUT (Lookup Table)?",
+          "marks": 1,
+          "options": {
+            "A": "Generating automatic closed captions",
+            "B": "Mapping and transforming color values and creative film grading looks across clips",
+            "C": "Setting audio equalizer frequencies",
+            "D": "Exporting subtitle tracks"
+          },
+          "correctAnswer": "B",
+          "track": "production",
+          "rubric": ""
+        },
+        {
+          "id": "q_b_p4",
+          "type": "mcq",
+          "text": "In cinematography, what lens aperture setting creates the shallowest depth of field (blurred background bokeh)?",
+          "marks": 1,
+          "options": {
+            "A": "f/1.4",
+            "B": "f/8.0",
+            "C": "f/16",
+            "D": "f/22"
+          },
+          "correctAnswer": "A",
+          "track": "production",
+          "rubric": ""
+        },
+        {
+          "id": "q_b_p5",
+          "type": "mcq",
+          "text": "In typography and layout, what does \"Leading\" (line-height) control?",
+          "marks": 1,
+          "options": {
+            "A": "The vertical distance between baselines of consecutive lines of text",
+            "B": "The slant angle of italic text",
+            "C": "The width of font characters",
+            "D": "The space between two letters"
+          },
+          "correctAnswer": "A",
+          "track": "production",
+          "rubric": ""
+        },
+        {
+          "id": "q_b_p6",
+          "type": "mcq",
+          "text": "In video editing, what type of cut transitions from an action in one shot to a matching action in another shot with seamless continuity?",
+          "marks": 1,
+          "options": {
+            "A": "Match Cut / Cut on Action",
+            "B": "Whip Pan",
+            "C": "Fade to Black",
+            "D": "Freeze Frame"
+          },
+          "correctAnswer": "A",
+          "track": "production",
+          "rubric": ""
+        },
+        {
+          "id": "q_b_p7",
+          "type": "mcq",
+          "text": "In graphic design, which vector file format allows lossy-free scaling to any resolution without pixelation?",
+          "marks": 1,
+          "options": {
+            "A": "JPEG",
+            "B": "PNG",
+            "C": "SVG",
+            "D": "GIF"
+          },
+          "correctAnswer": "C",
+          "track": "production",
+          "rubric": ""
+        }
+      ],
+      "strategy": [
+        {
+          "id": "q_b_s1",
+          "type": "mcq",
+          "text": "In a modern sales and marketing funnel, what does MQL stand for?",
+          "marks": 1,
+          "options": {
+            "A": "Minimum Quality Level",
+            "B": "Marketing Qualified Lead",
+            "C": "Monthly Quota Limit",
+            "D": "Market Query Language"
+          },
+          "correctAnswer": "B",
+          "track": "strategy",
+          "rubric": ""
+        },
+        {
+          "id": "q_b_s2",
+          "type": "mcq",
+          "text": "Which customer feedback metric measures customer loyalty by asking how likely they are to recommend a product on a 0–10 scale?",
+          "marks": 1,
+          "options": {
+            "A": "Net Promoter Score (NPS)",
+            "B": "Cost Per Click (CPC)",
+            "C": "Burn Rate",
+            "D": "Return on Equity"
+          },
+          "correctAnswer": "A",
+          "track": "strategy",
+          "rubric": ""
+        },
+        {
+          "id": "q_b_s3",
+          "type": "mcq",
+          "text": "Why is audience average watch time / retention rate considered a more critical algorithmic signal for video platforms than simple likes?",
+          "marks": 1,
+          "options": {
+            "A": "It directly determines server cooling requirements",
+            "B": "It proves genuine viewer engagement and content quality to algorithmic recommendation engines",
+            "C": "It eliminates the need for video tags",
+            "D": "It generates automatic translations"
+          },
+          "correctAnswer": "B",
+          "track": "strategy",
+          "rubric": ""
+        },
+        {
+          "id": "q_b_s4",
+          "type": "mcq",
+          "text": "In digital advertising campaigns, what is the formula for Click-Through Rate (CTR)?",
+          "marks": 1,
+          "options": {
+            "A": "(Total Clicks / Total Impressions) × 100",
+            "B": "(Total Conversions / Total Clicks) × 100",
+            "C": "Total Spend / Total Impressions",
+            "D": "Total Revenue / Total Ad Clicks"
+          },
+          "correctAnswer": "A",
+          "track": "strategy",
+          "rubric": ""
+        },
+        {
+          "id": "q_b_s5",
+          "type": "mcq",
+          "text": "What type of marketing strategy relies on encouraging existing satisfied customers to refer new users in exchange for rewards or credits?",
+          "marks": 1,
+          "options": {
+            "A": "Cold Calling",
+            "B": "Referral / Viral Loop Marketing",
+            "C": "Billboards",
+            "D": "TV Commercials"
+          },
+          "correctAnswer": "B",
+          "track": "strategy",
+          "rubric": ""
+        },
+        {
+          "id": "q_b_s6",
+          "type": "mcq",
+          "text": "In content writing, what is the primary purpose of a \"Hook\" in the opening 3 seconds of a video or first sentence of an article?",
+          "marks": 1,
+          "options": {
+            "A": "Present company legal terms",
+            "B": "Stop the user from scrolling by sparking curiosity, emotion, or addressing a specific pain point",
+            "C": "Request five-star reviews immediately",
+            "D": "Provide contact email addresses"
+          },
+          "correctAnswer": "B",
+          "track": "strategy",
+          "rubric": ""
+        },
+        {
+          "id": "q_b_s7",
+          "type": "mcq",
+          "text": "What is the primary difference between organic marketing and paid marketing?",
+          "marks": 1,
+          "options": {
+            "A": "Organic leverages non-paid content distribution and SEO, while paid relies on paid media spend and sponsored ad placements",
+            "B": "Organic only works on print flyers",
+            "C": "Paid marketing does not produce measurable metrics",
+            "D": "Organic marketing requires paid licenses"
+          },
+          "correctAnswer": "A",
+          "track": "strategy",
+          "rubric": ""
+        }
+      ],
+      "tech": [
+        {
+          "id": "q_b_t1",
+          "type": "mcq",
+          "text": "In modern responsive web design, what is the primary advantage of CSS Flexbox and CSS Grid over fixed pixel layouts?",
+          "marks": 1,
+          "options": {
+            "A": "Faster DNS lookup",
+            "B": "Seamless fluid adaptation across diverse screen sizes, orientations, and responsive viewports",
+            "C": "Automated SQL query caching",
+            "D": "Reducing video file size"
+          },
+          "correctAnswer": "B",
+          "track": "tech",
+          "rubric": ""
+        },
+        {
+          "id": "q_b_t2",
+          "type": "mcq",
+          "text": "Which technique optimizes technical articles and web pages for Generative AI search engines (GEO / Perplexity / Gemini)?",
+          "marks": 1,
+          "options": {
+            "A": "White text on white background keyword stuffing",
+            "B": "Direct factual answers, clear structured markdown headings (H2/H3), schema markup, and verifiable citations",
+            "C": "Disabling robots.txt indexing",
+            "D": "Using iframe redirects"
+          },
+          "correctAnswer": "B",
+          "track": "tech",
+          "rubric": ""
+        },
+        {
+          "id": "q_b_t3",
+          "type": "mcq",
+          "text": "What is the main performance benefit of Server-Side Rendering (SSR) compared to purely Client-Side Single Page Applications (CSR)?",
+          "marks": 1,
+          "options": {
+            "A": "It requires zero server resources",
+            "B": "Faster First Contentful Paint (FCP) and immediate pre-rendered HTML for search engine web crawlers",
+            "C": "Complete removal of all CSS files",
+            "D": "Offline database replication"
+          },
+          "correctAnswer": "B",
+          "track": "tech",
+          "rubric": ""
+        },
+        {
+          "id": "q_b_t4",
+          "type": "mcq",
+          "text": "In JavaScript web development, what is an asynchronous function (async/await) used for?",
+          "marks": 1,
+          "options": {
+            "A": "Handling non-blocking operations such as API network requests without freezing the browser UI thread",
+            "B": "Styling HTML buttons with gradient colors",
+            "C": "Compiling C++ code in WebAssembly",
+            "D": "Encrypting browser cookies"
+          },
+          "correctAnswer": "A",
+          "track": "tech",
+          "rubric": ""
+        },
+        {
+          "id": "q_b_t5",
+          "type": "mcq",
+          "text": "In AI agent engineering, what is the function of \"Prompt Engineering\"?",
+          "marks": 1,
+          "options": {
+            "A": "Writing hardware drivers for GPUs",
+            "B": "Crafting structured, clear instructions, constraints, and few-shot examples to elicit accurate LLM outputs",
+            "C": "Setting up LAN cables",
+            "D": "Installing operating system patches"
+          },
+          "correctAnswer": "B",
+          "track": "tech",
+          "rubric": ""
+        },
+        {
+          "id": "q_b_t6",
+          "type": "mcq",
+          "text": "What format is most commonly used for transmitting lightweight structured data between a web client and server APIs?",
+          "marks": 1,
+          "options": {
+            "A": "JSON (JavaScript Object Notation)",
+            "B": "Binary BMP",
+            "C": "RTF",
+            "D": "Raw assembly text"
+          },
+          "correctAnswer": "A",
+          "track": "tech",
+          "rubric": ""
+        },
+        {
+          "id": "q_b_t7",
+          "type": "mcq",
+          "text": "In modern cloud infrastructure and serverless architecture, what is an Edge Function?",
+          "marks": 1,
+          "options": {
+            "A": "A function executed on globally distributed servers closest to the user's geographic location for minimal latency",
+            "B": "A hardware keyboard shortcut",
+            "C": "A CSS border effect",
+            "D": "A database table index"
+          },
+          "correctAnswer": "A",
+          "track": "tech",
+          "rubric": ""
+        }
+      ]
+    },
+    "C": {
+      "production": [
+        {
+          "id": "q_c_p1",
+          "type": "mcq",
+          "text": "What camera focal length range is traditionally considered optimal for natural portrait photography with flattering perspective and minimal facial distortion?",
+          "marks": 1,
+          "options": {
+            "A": "14mm – 20mm",
+            "B": "50mm – 85mm",
+            "C": "200mm – 600mm",
+            "D": "8mm Fisheye"
+          },
+          "correctAnswer": "B",
+          "track": "production",
+          "rubric": ""
+        },
+        {
+          "id": "q_c_p2",
+          "type": "mcq",
+          "text": "In audio post-production, what is the primary role of an Audio Compressor?",
+          "marks": 1,
+          "options": {
+            "A": "Add heavy echo and spatial reverberation",
+            "B": "Reduce the dynamic range by attenuating loud peaks and boosting quieter sounds for a consistent level",
+            "C": "Change voice pitch",
+            "D": "Split stereo into mono"
+          },
+          "correctAnswer": "B",
+          "track": "production",
+          "rubric": ""
+        },
+        {
+          "id": "q_c_p3",
+          "type": "mcq",
+          "text": "In a multi-camera live broadcast or video studio production, what system ensures all video and audio feeds stay frame-synchronized without drift?",
+          "marks": 1,
+          "options": {
+            "A": "SMPTE Timecode and Genlock synchronization",
+            "B": "Manual stopwatch counting",
+            "C": "Variable bitrate compression",
+            "D": "Optical zoom adjustment"
+          },
+          "correctAnswer": "A",
+          "track": "production",
+          "rubric": ""
+        },
+        {
+          "id": "q_c_p4",
+          "type": "mcq",
+          "text": "In visual hierarchy, which element naturally commands the highest visual weight on a web page or poster?",
+          "marks": 1,
+          "options": {
+            "A": "Small gray body copy in the footer",
+            "B": "High-contrast, large-scale headline with bold weight and vibrant focal color",
+            "C": "Subtle background border lines",
+            "D": "Unstyled hyperlinks"
+          },
+          "correctAnswer": "B",
+          "track": "production",
+          "rubric": ""
+        },
+        {
+          "id": "q_c_p5",
+          "type": "mcq",
+          "text": "In video post-production, what is the term for recording custom sound effects in a studio in sync with picture (e.g. footsteps, cloth rustle)?",
+          "marks": 1,
+          "options": {
+            "A": "Foley recording",
+            "B": "MIDI sequencing",
+            "C": "Bitcrushing",
+            "D": "Phasing"
+          },
+          "correctAnswer": "A",
+          "track": "production",
+          "rubric": ""
+        },
+        {
+          "id": "q_c_p6",
+          "type": "mcq",
+          "text": "In video editing, what is a \"B-Roll\"?",
+          "marks": 1,
+          "options": {
+            "A": "The main primary interview audio track",
+            "B": "Supplementary or contextual cutaway footage that supports the primary narrative",
+            "C": "The end credit roll of a film",
+            "D": "A corrupt video export file"
+          },
+          "correctAnswer": "B",
+          "track": "production",
+          "rubric": ""
+        },
+        {
+          "id": "q_c_p7",
+          "type": "mcq",
+          "text": "In UI/UX design, what does \"Whitespace\" (Negative Space) accomplish?",
+          "marks": 1,
+          "options": {
+            "A": "It reduces user comprehension",
+            "B": "It improves visual clarity, groups related elements, and gives content room to breathe",
+            "C": "It wastes screen space unnecessarily",
+            "D": "It forces the page to load slower"
+          },
+          "correctAnswer": "B",
+          "track": "production",
+          "rubric": ""
+        }
+      ],
+      "strategy": [
+        {
+          "id": "q_c_s1",
+          "type": "mcq",
+          "text": "In digital product growth and landing page optimization, what is an A/B Split Test?",
+          "marks": 1,
+          "options": {
+            "A": "Splitting the company into two entities",
+            "B": "Comparing two variations of a page or asset against randomized user groups to determine which drives higher conversions",
+            "C": "Comparing annual taxes with quarterly debt",
+            "D": "Testing desktop vs offline radio ads"
+          },
+          "correctAnswer": "B",
+          "track": "strategy",
+          "rubric": ""
+        },
+        {
+          "id": "q_c_s2",
+          "type": "mcq",
+          "text": "Which marketing framework structures the customer decision journey into Awareness, Consideration, Decision, and Retention?",
+          "marks": 1,
+          "options": {
+            "A": "SWOT Matrix",
+            "B": "PESTLE Analysis",
+            "C": "Marketing & Sales Funnel",
+            "D": "Porter's Five Forces"
+          },
+          "correctAnswer": "C",
+          "track": "strategy",
+          "rubric": ""
+        },
+        {
+          "id": "q_c_s3",
+          "type": "mcq",
+          "text": "During an unexpected brand crisis or misinformation incident on social media, what is the best communications practice?",
+          "marks": 1,
+          "options": {
+            "A": "Delete all negative comments and pretend nothing happened",
+            "B": "Deliver swift, transparent, empathetic acknowledgement and pause scheduled promotional posts",
+            "C": "Triple paid promotional discount ads",
+            "D": "Blame external partners in all caps"
+          },
+          "correctAnswer": "B",
+          "track": "strategy",
+          "rubric": ""
+        },
+        {
+          "id": "q_c_s4",
+          "type": "mcq",
+          "text": "In performance marketing, what is \"Retargeting / Remarketing\"?",
+          "marks": 1,
+          "options": {
+            "A": "Showing targeted ads to users who previously visited your website or engaged with your brand",
+            "B": "Changing the company name every quarter",
+            "C": "Targeting completely random audiences who have never heard of your brand",
+            "D": "Deleting email lists"
+          },
+          "correctAnswer": "A",
+          "track": "strategy",
+          "rubric": ""
+        },
+        {
+          "id": "q_c_s5",
+          "type": "mcq",
+          "text": "In brand positioning, what is a \"Unique Value Proposition\" (UVP)?",
+          "marks": 1,
+          "options": {
+            "A": "A clear statement describing the unique benefit of your offering, how you solve customer problems, and what distinguishes you from competitors",
+            "B": "The cost of registering a domain name",
+            "C": "The company's annual tax return",
+            "D": "A standard employee NDA"
+          },
+          "correctAnswer": "A",
+          "track": "strategy",
+          "rubric": ""
+        },
+        {
+          "id": "q_c_s6",
+          "type": "mcq",
+          "text": "What is \"Churn Rate\" in a subscription or membership model?",
+          "marks": 1,
+          "options": {
+            "A": "The percentage of subscribers who cancel or fail to renew their subscription over a given time period",
+            "B": "The speed of customer service replies",
+            "C": "The number of new leads generated per day",
+            "D": "The profit margin on physical goods"
+          },
+          "correctAnswer": "A",
+          "track": "strategy",
+          "rubric": ""
+        },
+        {
+          "id": "q_c_s7",
+          "type": "mcq",
+          "text": "In content marketing, what does \"Evergreen Content\" mean?",
+          "marks": 1,
+          "options": {
+            "A": "Content that remains relevant, valuable, and search-driven over a long period rather than expiring with current news",
+            "B": "Articles written exclusively about forestry and nature",
+            "C": "Social posts that disappear after 24 hours",
+            "D": "Outdated press releases"
+          },
+          "correctAnswer": "A",
+          "track": "strategy",
+          "rubric": ""
+        }
+      ],
+      "tech": [
+        {
+          "id": "q_c_t1",
+          "type": "mcq",
+          "text": "What HTTP response status code indicates that a requested web resource has permanently moved to a new URL?",
+          "marks": 1,
+          "options": {
+            "A": "200 OK",
+            "B": "301 Moved Permanently",
+            "C": "404 Not Found",
+            "D": "500 Internal Server Error"
+          },
+          "correctAnswer": "B",
+          "track": "tech",
+          "rubric": ""
+        },
+        {
+          "id": "q_c_t2",
+          "type": "mcq",
+          "text": "What is the primary purpose of a Vector Database in AI and LLM application engineering?",
+          "marks": 1,
+          "options": {
+            "A": "Storing raw relational SQL tables for billing",
+            "B": "Indexing, storing, and fast nearest-neighbor querying of high-dimensional embeddings for semantic search and RAG pipelines",
+            "C": "Compressing video exports",
+            "D": "Rendering WebGL 3D meshes"
+          },
+          "correctAnswer": "B",
+          "track": "tech",
+          "rubric": ""
+        },
+        {
+          "id": "q_c_t3",
+          "type": "mcq",
+          "text": "In an automated AI customer intelligence pipeline, what Natural Language Processing (NLP) task classifies user feedback into positive, neutral, or negative sentiments?",
+          "marks": 1,
+          "options": {
+            "A": "Optical Character Recognition",
+            "B": "Sentiment Analysis",
+            "C": "Packet Inspection",
+            "D": "Lossless Audio Transcoding"
+          },
+          "correctAnswer": "B",
+          "track": "tech",
+          "rubric": ""
+        },
+        {
+          "id": "q_c_t4",
+          "type": "mcq",
+          "text": "In Git version control, what command creates a new isolated line of development to build a feature without altering the main codebase?",
+          "marks": 1,
+          "options": {
+            "A": "git branch",
+            "B": "git delete",
+            "C": "git reset --hard",
+            "D": "git clone --clean"
+          },
+          "correctAnswer": "A",
+          "track": "tech",
+          "rubric": ""
+        },
+        {
+          "id": "q_c_t5",
+          "type": "mcq",
+          "text": "In web security, what is the purpose of an SSL/TLS Certificate (HTTPS)?",
+          "marks": 1,
+          "options": {
+            "A": "Speeding up JavaScript execution",
+            "B": "Encrypting the communication channel between the user browser and web server to prevent eavesdropping and tampering",
+            "C": "Creating CSS responsive layouts",
+            "D": "Auto-generating passwords"
+          },
+          "correctAnswer": "B",
+          "track": "tech",
+          "rubric": ""
+        },
+        {
+          "id": "q_c_t6",
+          "type": "mcq",
+          "text": "In modern AI agent systems, what is \"Function Calling\" / \"Tool Use\"?",
+          "marks": 1,
+          "options": {
+            "A": "The ability of an LLM to output structured parameters to invoke external APIs, databases, or code executions to perform real actions",
+            "B": "Making telephone calls using VoIP",
+            "C": "Calling CSS classes from HTML",
+            "D": "Compiling Python scripts"
+          },
+          "correctAnswer": "A",
+          "track": "tech",
+          "rubric": ""
+        },
+        {
+          "id": "q_c_t7",
+          "type": "mcq",
+          "text": "In modern web development, what is LocalStorage in the browser?",
+          "marks": 1,
+          "options": {
+            "A": "A client-side web storage mechanism allowing web applications to store key-value data persistently across browser sessions",
+            "B": "A cloud MySQL cluster",
+            "C": "A temporary CPU cache",
+            "D": "A firewall setting"
+          },
+          "correctAnswer": "A",
+          "track": "tech",
+          "rubric": ""
+        }
+      ]
+    }
+  }
+}

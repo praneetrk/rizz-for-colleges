@@ -1,0 +1,3356 @@
+<!DOCTYPE html>
+<html lang="en" class="">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>RIZZ — Mentor Console</title>
+  <meta name="description" content="RIZZ for Colleges — Mentor Workshop Delivery and Curriculum Tracking Console." />
+
+  <!-- Google Fonts: DM Sans, Darker Grotesque, Playfair Display only -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400;1,9..40,600&family=Darker+Grotesque:wght@400;500;600;700;800;900&family=Playfair+Display:ital,wght@1,400;1,500;1,600;1,700&display=swap"
+    rel="stylesheet"
+  />
+
+  <!-- Font Awesome 6.5.2 -->
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+    integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W=="
+    crossorigin="anonymous"
+    referrerpolicy="no-referrer"
+  />
+
+  <!-- Firebase App & Realtime Database SDKs (Compat v9) -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+  <!-- Firebase Project Configuration & Realtime Sync Layer -->
+  <script src="firebase-config.js"></script>
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans:      ['"DM Sans"',          'ui-sans-serif', 'system-ui'],
+            grotesque: ['"Darker Grotesque"',  'ui-sans-serif'],
+            playfair:  ['"Playfair Display"',  'ui-serif',      'Georgia'],
+          },
+          colors: {
+            magenta: {
+              DEFAULT: '#D31F83',
+              50:  '#fce8f3',
+              100: '#f9c5e1',
+              200: '#f38fca',
+              400: '#e04fab',
+              600: '#b8196f',
+              700: '#9a155d',
+            },
+            amber: {
+              brand: '#EDA233',
+            },
+          },
+        },
+      },
+    };
+  </script>
+
+  <!-- Immediate Security Guard & Theme Init before page paints -->
+  <script>
+    /* Security Guard: Mentor role required */
+    (function securityGuard() {
+      var raw = localStorage.getItem('currentUser');
+      if (!raw) {
+        window.location.replace('index.html');
+        return;
+      }
+      try {
+        var u = JSON.parse(raw);
+        if (!u || !u.role) {
+          window.location.replace('index.html');
+          return;
+        }
+        var role = String(u.role).toLowerCase();
+        if (role !== 'mentor') {
+          var ROLE_ROUTES = {
+            student: 'STUD.html',
+            mentor:  'MENTOR.html',
+            admin:   'ADMIN.html',
+            hiring:  'HIRING.html',
+          };
+          window.location.replace(ROLE_ROUTES[role] || 'index.html');
+        }
+      } catch (e) {
+        window.location.replace('index.html');
+      }
+    })();
+
+    /* Theme Init: Prevent flash of unstyled theme */
+    (function () {
+      var saved = localStorage.getItem('rizz_theme');
+      var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+      if (saved === 'dark' || (!saved && prefersDark)) {
+        document.documentElement.classList.add('dark');
+      }
+    })();
+  </script>
+
+  <style>
+    /* =============================================
+       CUSTOM PROPERTIES — LIGHT THEME (default)
+    ============================================= */
+    :root {
+      --bg-app:         #F4F6F9;
+      --bg-sidebar:     #FFFFFF;
+      --bg-card:        #FFFFFF;
+      --bg-header:      #FFFFFF;
+      --bg-input:       #F8FAFC;
+      --border-subtle:  #E9EDF2;
+      --border-card:    #E9EDF2;
+      --text-primary:   #0F172A;
+      --text-muted:     #64748B;
+      --text-label:     #334155;
+      --text-sidebar:   #475569;
+      --shadow-card:    0 1px 3px 0 rgba(15,23,42,0.06), 0 1px 2px -1px rgba(15,23,42,0.04);
+      --shadow-card-md: 0 4px 12px -2px rgba(15,23,42,0.08), 0 2px 6px -2px rgba(15,23,42,0.04);
+      --shadow-card-lg: 0 16px 32px -6px rgba(15,23,42,0.10), 0 6px 14px -4px rgba(15,23,42,0.06);
+      --shadow-header:  0 1px 2px 0 rgba(15,23,42,0.06);
+    }
+
+    /* =============================================
+       CUSTOM PROPERTIES — DARK THEME
+    ============================================= */
+    .dark {
+      --bg-app:         #080C14;
+      --bg-sidebar:     #0D1424;
+      --bg-card:        #111827;
+      --bg-header:      #0D1424;
+      --bg-input:       #0F172A;
+      --border-subtle:  #1C2B44;
+      --border-card:    #1C2B44;
+      --text-primary:   #F1F5F9;
+      --text-muted:     #94A3B8;
+      --text-label:     #CBD5E1;
+      --text-sidebar:   #94A3B8;
+      --shadow-card:    0 1px 3px 0 rgba(0,0,0,0.35), 0 1px 2px -1px rgba(0,0,0,0.25);
+      --shadow-card-md: 0 4px 12px -2px rgba(0,0,0,0.45), 0 2px 6px -2px rgba(0,0,0,0.30);
+      --shadow-card-lg: 0 16px 32px -6px rgba(0,0,0,0.55), 0 6px 14px -4px rgba(0,0,0,0.35);
+      --shadow-header:  0 1px 3px 0 rgba(0,0,0,0.40);
+    }
+
+    /* =============================================
+       BASE RESET & TYPOGRAPHY
+    ============================================= */
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body { height: 100%; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'DM Sans', ui-sans-serif, system-ui;
+      background-color: var(--bg-app);
+      color: var(--text-primary);
+      transition: background-color 0.25s ease, color 0.25s ease;
+      overflow: hidden;
+    }
+
+    .font-grotesque { font-family: 'Darker Grotesque', ui-sans-serif; }
+    .font-playfair  { font-family: 'Playfair Display', ui-serif, Georgia; font-style: italic; }
+
+    /* =============================================
+       DECORATIVE BACKGROUND (Soft sky-blue fading glow)
+    ============================================= */
+    .blob {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(110px);
+      pointer-events: none;
+      z-index: 0;
+      opacity: 0;
+      transition: opacity 0.5s ease;
+    }
+    .blob-tl {
+      width: 480px; height: 480px;
+      top: -90px; left: 220px;
+      background: radial-gradient(circle, rgba(147,197,253,0.07) 0%, transparent 70%);
+    }
+    .blob-br {
+      width: 540px; height: 540px;
+      bottom: -150px; right: -90px;
+      background: radial-gradient(circle, rgba(147,197,253,0.06) 0%, rgba(237,162,51,0.04) 60%, transparent 100%);
+    }
+    body.ready .blob { opacity: 1; }
+    .dark .blob-tl { background: radial-gradient(circle, rgba(96,165,250,0.07) 0%, transparent 70%); }
+    .dark .blob-br { background: radial-gradient(circle, rgba(96,165,250,0.06) 0%, rgba(237,162,51,0.04) 60%, transparent 100%); }
+
+    /* =============================================
+       APP SHELL
+    ============================================= */
+    #app-shell {
+      display: flex;
+      height: 100vh;
+      width: 100vw;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* =============================================
+       SIDEBAR
+    ============================================= */
+    #sidebar {
+      width: 256px;
+      min-width: 256px;
+      height: 100vh;
+      background-color: var(--bg-sidebar);
+      border-right: 1px solid var(--border-subtle);
+      display: flex;
+      flex-direction: column;
+      transition: background-color 0.25s ease, border-color 0.25s ease, transform 0.3s ease;
+      flex-shrink: 0;
+      z-index: 40;
+      overflow: hidden;
+    }
+
+    .sidebar-logo-area {
+      padding: 1.375rem 1.5rem 1.125rem;
+      border-bottom: 1px solid var(--border-subtle);
+      flex-shrink: 0;
+      transition: border-color 0.25s ease;
+    }
+
+    .sidebar-logo-area img {
+      height: 2.125rem;
+      width: auto;
+      object-fit: contain;
+    }
+
+    .sidebar-nav-label {
+      font-family: 'Darker Grotesque', ui-sans-serif;
+      font-size: 0.72rem;
+      font-weight: 800;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      padding: 0 1.5rem 0.5rem;
+      margin-top: 1.25rem;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.6875rem 1.5rem;
+      color: var(--text-sidebar);
+      font-size: 0.875rem;
+      font-weight: 500;
+      border-left: 3px solid transparent;
+      transition: all 0.18s ease;
+      cursor: pointer;
+      user-select: none;
+      text-decoration: none;
+    }
+
+    .nav-item:hover {
+      background-color: rgba(211, 31, 131, 0.04);
+      color: var(--text-primary);
+      border-left-color: rgba(211, 31, 131, 0.4);
+    }
+
+    .dark .nav-item:hover {
+      background-color: rgba(211, 31, 131, 0.08);
+      color: var(--text-primary);
+      border-left-color: rgba(211, 31, 131, 0.6);
+    }
+
+    .nav-item.active {
+      background: linear-gradient(90deg, rgba(211, 31, 131, 0.09) 0%, rgba(211, 31, 131, 0.02) 100%);
+      color: #D31F83;
+      font-weight: 600;
+      border-left-color: #D31F83;
+    }
+
+    .dark .nav-item.active {
+      background: linear-gradient(90deg, rgba(211, 31, 131, 0.16) 0%, rgba(211, 31, 131, 0.03) 100%);
+      color: #f38fca;
+      border-left-color: #D31F83;
+    }
+
+    .nav-item i {
+      font-size: 1rem;
+      width: 1.25rem;
+      text-align: center;
+      flex-shrink: 0;
+    }
+
+    .sidebar-footer {
+      margin-top: auto;
+      padding: 1rem 1.25rem;
+      border-top: 1px solid var(--border-subtle);
+      flex-shrink: 0;
+    }
+
+    /* =============================================
+       MAIN CONTENT WRAPPER
+    ============================================= */
+    #main-wrapper {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      min-width: 0;
+      overflow: hidden;
+    }
+
+    /* =============================================
+       HEADER
+    ============================================= */
+    #header {
+      height: 64px;
+      min-height: 64px;
+      background-color: var(--bg-header);
+      border-bottom: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 1.5rem;
+      gap: 1rem;
+      flex-shrink: 0;
+      box-shadow: var(--shadow-header);
+      transition: background-color 0.25s ease, border-color 0.25s ease;
+      z-index: 30;
+    }
+
+    #content-area {
+      flex: 1;
+      overflow-y: auto;
+      overflow-x: hidden;
+      padding: 1.75rem 2rem;
+      position: relative;
+    }
+
+    /* =============================================
+       TAB VIEWS
+    ============================================= */
+    .tab-view {
+      display: none;
+    }
+    .tab-view.active {
+      display: block;
+      animation: tabFadeIn 0.2s ease forwards;
+    }
+    @keyframes tabFadeIn {
+      from { opacity: 0; transform: translateY(4px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* =============================================
+       CARDS & DESIGN COMPONENTS
+    ============================================= */
+    .glass-card {
+      background-color: var(--bg-card);
+      border: 1px solid var(--border-card);
+      border-radius: 1.125rem;
+      box-shadow: var(--shadow-card);
+      transition: background-color 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+    }
+
+    .glass-card:hover {
+      box-shadow: var(--shadow-card-md);
+    }
+
+    /* Ambient Background Circles / Bubbles */
+    .welcome-banner,
+    .mentor-hero-card,
+    .ambient-card-primary {
+      position: relative;
+      overflow: hidden;
+    }
+    .welcome-banner::before,
+    .mentor-hero-card::before,
+    .ambient-card-primary::before {
+      content: '';
+      position: absolute;
+      top: -35px;
+      right: -30px;
+      width: 180px;
+      height: 180px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(237, 162, 51, 0.05) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+    .welcome-banner::after,
+    .mentor-hero-card::after,
+    .ambient-card-primary::after {
+      content: '';
+      position: absolute;
+      bottom: -45px;
+      left: 20px;
+      width: 130px;
+      height: 130px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(211, 31, 131, 0.04) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .ambient-card-indigo {
+      position: relative;
+      overflow: hidden;
+    }
+    .ambient-card-indigo::before {
+      content: '';
+      position: absolute;
+      top: -30px;
+      right: -25px;
+      width: 155px;
+      height: 155px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(99, 102, 241, 0.045) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+    .ambient-card-indigo::after {
+      content: '';
+      position: absolute;
+      bottom: -35px;
+      left: 20px;
+      width: 115px;
+      height: 115px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(14, 165, 233, 0.04) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .ambient-card-emerald {
+      position: relative;
+      overflow: hidden;
+    }
+    .ambient-card-emerald::before {
+      content: '';
+      position: absolute;
+      top: -30px;
+      right: -25px;
+      width: 150px;
+      height: 150px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(16, 185, 129, 0.045) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .ambient-card-amber {
+      position: relative;
+      overflow: hidden;
+    }
+    .ambient-card-amber::before {
+      content: '';
+      position: absolute;
+      top: -30px;
+      right: -25px;
+      width: 150px;
+      height: 150px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(237, 162, 51, 0.05) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .metric-card {
+      padding: 1.25rem 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 1.125rem;
+      border-radius: 1.125rem;
+      background-color: var(--bg-card);
+      border: 1px solid var(--border-card);
+      box-shadow: var(--shadow-card);
+      transition: all 0.2s ease;
+      position: relative;
+      overflow: hidden;
+    }
+    .metric-card::before {
+      content: '';
+      position: absolute;
+      top: -25px;
+      right: -25px;
+      width: 110px;
+      height: 110px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(211, 31, 131, 0.045) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+      transition: transform 0.2s ease;
+    }
+    .metric-card:nth-child(2)::before {
+      background: radial-gradient(circle, rgba(16, 185, 129, 0.045) 0%, transparent 70%);
+    }
+    .metric-card:nth-child(3)::before {
+      background: radial-gradient(circle, rgba(237, 162, 51, 0.05) 0%, transparent 70%);
+    }
+    .metric-card:hover::before {
+      transform: scale(1.12);
+    }
+    .metric-card:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-card-md);
+    }
+
+    .metric-icon-badge {
+      width: 3rem;
+      height: 3rem;
+      border-radius: 0.875rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.25rem;
+      flex-shrink: 0;
+      position: relative;
+      z-index: 1;
+    }
+    .ic-magenta { background-color: rgba(211,31,131,0.1); color: #D31F83; }
+    .ic-amber   { background-color: rgba(237,162,51,0.12); color: #EDA233; }
+    .ic-emerald { background-color: rgba(16,185,129,0.12); color: #10B981; }
+    .ic-slate   { background-color: rgba(100,116,139,0.1); color: #64748B; }
+
+    /* Buttons */
+    .btn-primary {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      background-color: #D31F83;
+      color: #FFFFFF;
+      font-family: 'Darker Grotesque', ui-sans-serif;
+      font-weight: 700;
+      font-size: 1rem;
+      letter-spacing: 0.02em;
+      padding: 0.5625rem 1.25rem;
+      border-radius: 0.75rem;
+      border: none;
+      cursor: pointer;
+      transition: all 0.18s ease;
+      user-select: none;
+    }
+    .btn-primary:hover {
+      background-color: #B8196F;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(211,31,131,0.28);
+    }
+    .btn-primary:active { transform: translateY(0); }
+
+    .btn-secondary {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      background-color: transparent;
+      color: var(--text-label);
+      font-family: 'Darker Grotesque', ui-sans-serif;
+      font-weight: 700;
+      font-size: 1rem;
+      padding: 0.5625rem 1.125rem;
+      border-radius: 0.75rem;
+      border: 1px solid var(--border-subtle);
+      cursor: pointer;
+      transition: all 0.18s ease;
+      user-select: none;
+    }
+    .btn-secondary:hover {
+      background-color: rgba(0,0,0,0.03);
+      color: var(--text-primary);
+      border-color: #D31F83;
+    }
+    .dark .btn-secondary:hover {
+      background-color: rgba(255,255,255,0.04);
+      color: var(--text-primary);
+      border-color: #D31F83;
+    }
+
+    .btn-sm-primary {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.375rem;
+      background-color: #D31F83;
+      color: #FFFFFF;
+      font-family: 'Darker Grotesque', ui-sans-serif;
+      font-weight: 700;
+      font-size: 0.875rem;
+      padding: 0.375rem 0.875rem;
+      border-radius: 0.5rem;
+      border: none;
+      cursor: pointer;
+      transition: all 0.18s ease;
+    }
+    .btn-sm-primary:hover {
+      background-color: #B8196F;
+      box-shadow: 0 2px 8px rgba(211,31,131,0.25);
+    }
+
+    .btn-sm-secondary {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.375rem;
+      background-color: transparent;
+      color: var(--text-muted);
+      font-family: 'Darker Grotesque', ui-sans-serif;
+      font-weight: 700;
+      font-size: 0.875rem;
+      padding: 0.375rem 0.875rem;
+      border-radius: 0.5rem;
+      border: 1px solid var(--border-subtle);
+      cursor: pointer;
+      transition: all 0.18s ease;
+    }
+    .btn-sm-secondary:hover {
+      border-color: #D31F83;
+      color: #D31F83;
+    }
+
+    /* Badges & Pills */
+    .category-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.2rem 0.65rem;
+      border-radius: 9999px;
+      font-size: 0.72rem;
+      font-weight: 600;
+      background-color: rgba(211,31,131,0.08);
+      color: #D31F83;
+      border: 1px solid rgba(211,31,131,0.18);
+    }
+    .dark .category-pill {
+      background-color: rgba(211,31,131,0.15);
+      color: #f38fca;
+      border-color: rgba(211,31,131,0.3);
+    }
+
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.375rem;
+      padding: 0.25rem 0.65rem;
+      border-radius: 9999px;
+      font-size: 0.72rem;
+      font-family: 'Darker Grotesque', ui-sans-serif;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .status-badge.completed {
+      background-color: rgba(16, 185, 129, 0.1);
+      color: #10B981;
+      border: 1px solid rgba(16, 185, 129, 0.25);
+    }
+    .status-badge.upcoming {
+      background-color: rgba(237, 162, 51, 0.12);
+      color: #EDA233;
+      border: 1px solid rgba(237, 162, 51, 0.28);
+    }
+
+    /* Progress bar */
+    .progress-bar-track {
+      height: 0.5rem;
+      border-radius: 9999px;
+      background-color: var(--border-subtle);
+      overflow: hidden;
+      position: relative;
+    }
+    .progress-bar-fill {
+      height: 100%;
+      border-radius: 9999px;
+      background: linear-gradient(90deg, #D31F83 0%, #EDA233 100%);
+      transition: width 0.4s ease;
+    }
+
+    /* Workshop Card & Topic Row */
+    .track-section-card {
+      border: 1px solid var(--border-card);
+      background-color: var(--bg-card);
+      border-radius: 1.125rem;
+      overflow: hidden;
+      box-shadow: var(--shadow-card);
+      transition: all 0.2s ease;
+    }
+
+    .track-header-bar {
+      padding: 1.25rem 1.5rem;
+      background: linear-gradient(180deg, rgba(211,31,131,0.03) 0%, transparent 100%);
+      border-bottom: 1px solid var(--border-subtle);
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+
+    .topic-item-row {
+      padding: 1.125rem 1.5rem;
+      border-bottom: 1px solid var(--border-subtle);
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      transition: background-color 0.15s ease;
+    }
+    .topic-item-row:last-child {
+      border-bottom: none;
+    }
+    .topic-item-row:hover {
+      background-color: rgba(211,31,131,0.015);
+    }
+    .dark .topic-item-row:hover {
+      background-color: rgba(211,31,131,0.03);
+    }
+
+    @media (min-width: 640px) {
+      .topic-item-row {
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+      }
+    }
+
+    /* Modals & Backdrop */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background-color: rgba(15, 23, 42, 0.55);
+      backdrop-filter: blur(4px);
+      z-index: 50;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease;
+    }
+    .modal-backdrop.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .modal-window {
+      background-color: var(--bg-card);
+      border: 1px solid var(--border-card);
+      border-radius: 1.25rem;
+      box-shadow: var(--shadow-card-lg);
+      width: 100%;
+      max-width: 480px;
+      padding: 1.75rem;
+      transform: scale(0.95) translateY(8px);
+      transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .modal-backdrop.active .modal-window {
+      transform: scale(1) translateY(0);
+    }
+
+    /* Toast */
+    #toast {
+      position: fixed;
+      bottom: 1.5rem;
+      right: 1.5rem;
+      background-color: #0F172A;
+      color: #FFFFFF;
+      padding: 0.875rem 1.25rem;
+      border-radius: 0.875rem;
+      box-shadow: 0 10px 25px -5px rgba(0,0,0,0.3);
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      font-size: 0.875rem;
+      z-index: 60;
+      opacity: 0;
+      transform: translateY(12px);
+      pointer-events: none;
+      transition: all 0.25s ease;
+    }
+    .dark #toast {
+      background-color: #1E293B;
+      border: 1px solid #334155;
+    }
+    #toast.show {
+      opacity: 1;
+      transform: translateY(0);
+      pointer-events: auto;
+    }
+
+    /* Placeholder Page */
+    .placeholder-page {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 3.5rem 1.5rem;
+      gap: 1rem;
+    }
+    .placeholder-icon {
+      width: 4rem;
+      height: 4rem;
+      border-radius: 1.25rem;
+      background-color: rgba(211,31,131,0.08);
+      color: #D31F83;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.75rem;
+    }
+
+    /* Mobile Sidebar Overlay */
+    #mobile-sidebar-backdrop {
+      display: none;
+    }
+    @media (max-width: 768px) {
+      #sidebar {
+        position: fixed;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        transform: translateX(-100%);
+      }
+      #sidebar.open {
+        transform: translateX(0);
+      }
+      #mobile-sidebar-backdrop.open {
+        display: block;
+        position: fixed;
+        inset: 0;
+        background-color: rgba(15,23,42,0.5);
+        z-index: 35;
+      }
+    }
+  </style>
+</head>
+
+<body class="ready">
+  <!-- Soft sky-blue decorative blobs -->
+  <div class="blob blob-tl" aria-hidden="true"></div>
+  <div class="blob blob-br" aria-hidden="true"></div>
+
+  <!-- Mobile Sidebar Backdrop -->
+  <div id="mobile-sidebar-backdrop" onclick="toggleMobileSidebar(false)"></div>
+
+  <div id="app-shell">
+    <!-- ============================================================
+         SIDEBAR NAVIGATION
+    ============================================================ -->
+    <aside id="sidebar" aria-label="Mentor Console Navigation">
+      <!-- Logo Area -->
+      <div class="sidebar-logo-area flex items-center justify-between">
+        <a href="MENTOR.html" class="inline-block" aria-label="RIZZ Home">
+          <img id="sidebarLogo" src="logo-light.png" alt="RIZZ for Colleges" />
+        </a>
+        <button
+          type="button"
+          class="md:hidden text-[var(--text-muted)] hover:text-[var(--text-primary)] text-lg p-1"
+          onclick="toggleMobileSidebar(false)"
+          aria-label="Close Sidebar"
+        >
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <!-- Navigation Links -->
+      <div class="sidebar-nav-label">Mentor Workspace</div>
+      <nav class="space-y-1 px-0 flex-1 overflow-y-auto" role="navigation">
+        <a
+          href="#home"
+          class="nav-item active"
+          data-tab="home"
+          onclick="switchTab('home'); return false;"
+          aria-current="page"
+        >
+          <i class="fa-solid fa-house" aria-hidden="true"></i>
+          <span>Home</span>
+        </a>
+
+        <a
+          href="#workshops"
+          class="nav-item"
+          data-tab="workshops"
+          onclick="switchTab('workshops'); return false;"
+        >
+          <i class="fa-solid fa-chalkboard-user" aria-hidden="true"></i>
+          <span>My Workshops</span>
+        </a>
+
+        <a
+          href="#assessment-review"
+          class="nav-item"
+          data-tab="assessment-review"
+          onclick="switchTab('assessment-review'); return false;"
+        >
+          <i class="fa-solid fa-award" aria-hidden="true"></i>
+          <span>Assessment Review</span>
+        </a>
+      </nav>
+
+      <!-- Sidebar Footer -->
+      <div class="sidebar-footer">
+        <div class="flex items-center gap-3">
+          <div
+            id="sidebarUserAvatar"
+            class="w-9 h-9 rounded-xl bg-[#D31F83]/10 text-[#D31F83] font-grotesque font-800 text-sm flex items-center justify-center shrink-0"
+          >
+            M
+          </div>
+          <div class="min-w-0 flex-1">
+            <div id="sidebarUserName" class="text-xs font-bold text-[var(--text-primary)] truncate">Mentor Name</div>
+            <div id="sidebarUserRole" class="text-[11px] text-[var(--text-muted)] flex items-center gap-1">
+              <i class="fa-solid fa-chalkboard-user text-[10px] text-[#EDA233]"></i> Mentor
+            </div>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- ============================================================
+         MAIN CONTENT AREA
+    ============================================================ -->
+    <div id="main-wrapper">
+      <!-- Top Header -->
+      <header id="header">
+        <div class="flex items-center gap-3">
+          <button
+            type="button"
+            id="mobileMenuBtn"
+            class="md:hidden text-[var(--text-muted)] hover:text-[var(--text-primary)] text-lg p-1.5 rounded-lg border border-[var(--border-subtle)]"
+            onclick="toggleMobileSidebar(true)"
+            aria-label="Open Navigation"
+          >
+            <i class="fa-solid fa-bars"></i>
+          </button>
+          <h1 id="headerPageTitle" class="font-grotesque text-xl md:text-2xl font-800 text-[var(--text-primary)] m-0">
+            Mentor Console
+          </h1>
+        </div>
+
+        <div class="flex items-center gap-3">
+          <!-- Theme Toggle -->
+          <button
+            type="button"
+            id="themeToggle"
+            class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-[var(--border-subtle)] bg-[var(--bg-card)] text-xs font-medium text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:border-[#D31F83]/40 transition-colors"
+            aria-label="Toggle Theme"
+          >
+            <i id="themeIcon" class="fa-solid fa-sun text-[0.75rem]" aria-hidden="true"></i>
+            <span id="themeLabel">Light</span>
+          </button>
+
+          <!-- Profile Cluster & Dropdown -->
+          <div class="relative" id="profileCluster">
+            <button
+              type="button"
+              id="profileBtn"
+              class="flex items-center gap-2.5 p-1 rounded-xl hover:bg-[var(--bg-app)] transition-colors"
+              aria-expanded="false"
+              aria-haspopup="true"
+              onclick="toggleProfileDropdown()"
+            >
+              <div
+                id="headerAvatar"
+                class="w-8 h-8 rounded-xl bg-[#D31F83]/10 text-[#D31F83] font-grotesque font-800 text-sm flex items-center justify-center shrink-0"
+              >
+                M
+              </div>
+              <div class="hidden sm:block text-left pr-1">
+                <div id="headerUserName" class="text-xs font-bold text-[var(--text-primary)] leading-tight">Mentor</div>
+                <div id="headerUserId" class="text-[10px] text-[var(--text-muted)] leading-tight">MEN-001</div>
+              </div>
+              <i class="fa-solid fa-chevron-down text-[0.65rem] text-[var(--text-muted)] hidden sm:block"></i>
+            </button>
+
+            <!-- Dropdown Menu -->
+            <div
+              id="profileDropdown"
+              class="hidden absolute right-0 top-full mt-2 w-56 rounded-2xl bg-[var(--bg-card)] border border-[var(--border-card)] shadow-xl p-1.5 z-50 text-xs font-sans"
+            >
+              <div class="px-3 py-2 border-b border-[var(--border-subtle)] mb-1">
+                <div id="dropdownName" class="font-bold text-[var(--text-primary)] text-sm">Mentor Name</div>
+                <div id="dropdownEmail" class="text-[var(--text-muted)] text-[11px] truncate">mentor@college.edu</div>
+              </div>
+              <button
+                type="button"
+                class="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-left text-[var(--text-primary)] hover:bg-[var(--bg-app)] hover:text-[#D31F83] transition-colors"
+                onclick="openProfileSettingsModal()"
+              >
+                <i class="fa-regular fa-user text-xs"></i>
+                <span>Profile Settings</span>
+              </button>
+              <button
+                type="button"
+                class="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-left text-[var(--text-primary)] hover:bg-[var(--bg-app)] hover:text-[#D31F83] transition-colors"
+                onclick="openChangePasswordModal()"
+              >
+                <i class="fa-solid fa-key text-xs"></i>
+                <span>Change Password</span>
+              </button>
+              <div class="border-t border-[var(--border-subtle)] my-1"></div>
+              <button
+                type="button"
+                id="btnLogout"
+                class="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-left text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors"
+                onclick="handleLogout()"
+              >
+                <i class="fa-solid fa-arrow-right-from-bracket text-xs"></i>
+                <span>Logout</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <!-- Scrollable Main Content -->
+      <main id="content-area">
+        <!-- ============================================================
+             TAB 1: MENTOR HOME
+        ============================================================ -->
+        <section id="tab-home" class="tab-view active" aria-labelledby="home-heading">
+          <div class="max-w-5xl mx-auto space-y-6">
+            <!-- Hero Greeting Banner -->
+            <div class="glass-card mentor-hero-card p-6 md:p-8 flex flex-col md:flex-row md:items-center justify-between gap-6">
+              <div class="space-y-2">
+                <div class="flex items-center gap-2">
+                  <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#EDA233]/15 text-[#EDA233] text-xs font-grotesque font-bold uppercase tracking-wider">
+                    <i class="fa-solid fa-chalkboard-user text-[0.7rem]" aria-hidden="true"></i>
+                    <span>Mentor Portal</span>
+                  </span>
+                  <span id="mentorCollegeBadge" class="hidden inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[var(--bg-app)] border border-[var(--border-subtle)] text-xs text-[var(--text-muted)] font-sans">
+                    <i class="fa-solid fa-building-columns text-[0.65rem] text-[#D31F83]"></i>
+                    <span id="mentorCollegeName">College</span>
+                  </span>
+                </div>
+                <h2 id="home-heading" class="text-3xl md:text-4xl m-0 leading-tight" style="color: var(--text-primary);">
+                  <span id="mentorGreetingPrefix" class="font-playfair text-[var(--text-primary)]" style="font-family:'Playfair Display',serif;font-style:italic;">Good morning, </span><span class="font-playfair text-[#D31F83]" id="mentorGreetingName" style="font-family:'Playfair Display',serif;font-style:italic;">Mentor</span>
+                </h2>
+                <p class="font-sans text-sm text-[var(--text-muted)] max-w-xl leading-relaxed m-0">
+                  Welcome to your workshop curriculum delivery console. Track and mark delivery milestones for your assigned workshop tracks and topics.
+                </p>
+              </div>
+
+              <div class="flex items-center gap-3 shrink-0">
+                <button type="button" class="btn-primary" onclick="switchTab('workshops')">
+                  <i class="fa-solid fa-layer-group text-sm" aria-hidden="true"></i>
+                  <span>Open My Workshops</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Compact Metrics Overview -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <!-- Metric 1: Assigned Topics -->
+              <div class="metric-card">
+                <div class="metric-icon-badge ic-magenta">
+                  <i class="fa-solid fa-layer-group" aria-hidden="true"></i>
+                </div>
+                <div>
+                  <div class="font-grotesque text-3xl font-800 text-[var(--text-primary)] leading-tight" id="metricAssignedCount">0</div>
+                  <div class="font-sans text-xs text-[var(--text-muted)] font-medium">Assigned Topics</div>
+                </div>
+              </div>
+
+              <!-- Metric 2: Completed Topics -->
+              <div class="metric-card">
+                <div class="metric-icon-badge ic-emerald">
+                  <i class="fa-solid fa-circle-check" aria-hidden="true"></i>
+                </div>
+                <div>
+                  <div class="font-grotesque text-3xl font-800 text-emerald-600 dark:text-emerald-400 leading-tight" id="metricCompletedCount">0</div>
+                  <div class="font-sans text-xs text-[var(--text-muted)] font-medium">Completed Topics</div>
+                </div>
+              </div>
+
+              <!-- Metric 3: Remaining Topics -->
+              <div class="metric-card">
+                <div class="metric-icon-badge ic-amber">
+                  <i class="fa-regular fa-clock" aria-hidden="true"></i>
+                </div>
+                <div>
+                  <div class="font-grotesque text-3xl font-800 text-[#EDA233] leading-tight" id="metricRemainingCount">0</div>
+                  <div class="font-sans text-xs text-[var(--text-muted)] font-medium">Remaining Topics</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Assigned Topic Progress Card -->
+            <div class="glass-card p-6 md:p-8 space-y-4 ambient-card-primary">
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[var(--border-subtle)] pb-4">
+                <div>
+                  <h3 class="font-grotesque text-2xl font-800 text-[var(--text-primary)] m-0">
+                    Assigned Topic Progress
+                  </h3>
+                  <p class="font-sans text-xs text-[var(--text-muted)] m-0 mt-0.5">
+                    Curriculum delivery progress across all your assigned workshop modules
+                  </p>
+                </div>
+                <div class="text-right">
+                  <span class="font-grotesque text-2xl font-800 text-[#D31F83]" id="homeProgressPercent">0%</span>
+                  <span class="font-sans text-xs text-[var(--text-muted)] ml-1.5" id="homeProgressFraction">(0 / 0 completed)</span>
+                </div>
+              </div>
+
+              <div class="progress-bar-track">
+                <div id="homeProgressBar" class="progress-bar-fill" style="width: 0%;"></div>
+              </div>
+            </div>
+
+            <!-- Quick Topics Preview Section -->
+            <div class="glass-card p-6 md:p-8 space-y-4">
+              <div class="flex items-center justify-between border-b border-[var(--border-subtle)] pb-3">
+                <h3 class="font-grotesque text-xl font-800 text-[var(--text-primary)] m-0">
+                  Your Assigned Topics
+                </h3>
+                <button type="button" class="btn-secondary text-xs py-1.5 px-3" onclick="switchTab('workshops')">
+                  <span>View All in My Workshops</span>
+                  <i class="fa-solid fa-arrow-right text-[0.7rem] ml-1"></i>
+                </button>
+              </div>
+
+              <div id="homeRecentTopicsList" class="space-y-3">
+                <!-- Dynamically rendered via renderMentorHome() -->
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ============================================================
+             TAB 2: MY WORKSHOPS
+        ============================================================ -->
+        <section id="tab-workshops" class="tab-view" aria-labelledby="workshops-heading">
+          <div class="max-w-5xl mx-auto space-y-6">
+            <!-- Header Banner -->
+            <div class="glass-card p-6 md:p-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div>
+                <div class="flex items-center gap-2 mb-1">
+                  <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#D31F83]/10 text-[#D31F83] text-xs font-grotesque font-bold uppercase">
+                    <i class="fa-solid fa-chalkboard-user text-[0.7rem]" aria-hidden="true"></i>
+                    <span>Assigned Modules</span>
+                  </span>
+                </div>
+                <h2 id="workshops-heading" class="font-grotesque text-3xl font-800 text-[var(--text-primary)] m-0">
+                  My Workshops
+                </h2>
+                <p class="font-sans text-sm text-[var(--text-muted)] max-w-xl leading-relaxed mt-1 mb-0">
+                  View and deliver your assigned workshop topics. Mark topics as completed when delivered to update overall syllabus progress.
+                </p>
+              </div>
+
+              <!-- Track Filter Pills -->
+              <div class="flex flex-wrap items-center gap-2 shrink-0" id="workshopFilterPills">
+                <button
+                  type="button"
+                  class="filter-pill px-3 py-1.5 rounded-xl border border-[#D31F83] bg-[#D31F83]/10 text-[#D31F83] text-xs font-bold font-grotesque uppercase transition-colors"
+                  data-filter="all"
+                  onclick="setTrackFilter('all')"
+                >
+                  All Tracks
+                </button>
+                <button
+                  type="button"
+                  class="filter-pill px-3 py-1.5 rounded-xl border border-[var(--border-subtle)] text-[var(--text-muted)] hover:border-[#D31F83]/40 text-xs font-bold font-grotesque uppercase transition-colors"
+                  data-filter="production"
+                  onclick="setTrackFilter('production')"
+                >
+                  Production
+                </button>
+                <button
+                  type="button"
+                  class="filter-pill px-3 py-1.5 rounded-xl border border-[var(--border-subtle)] text-[var(--text-muted)] hover:border-[#D31F83]/40 text-xs font-bold font-grotesque uppercase transition-colors"
+                  data-filter="strategy"
+                  onclick="setTrackFilter('strategy')"
+                >
+                  Strategy
+                </button>
+                <button
+                  type="button"
+                  class="filter-pill px-3 py-1.5 rounded-xl border border-[var(--border-subtle)] text-[var(--text-muted)] hover:border-[#D31F83]/40 text-xs font-bold font-grotesque uppercase transition-colors"
+                  data-filter="tech"
+                  onclick="setTrackFilter('tech')"
+                >
+                  Tech
+                </button>
+              </div>
+            </div>
+
+            <!-- Dynamic Workshop Container -->
+            <div id="myWorkshopsContainer" class="space-y-6">
+              <!-- Dynamically populated via renderMyWorkshops() -->
+            </div>
+          </div>
+        </section>
+
+        <!-- ============================================================
+             TAB 3: ASSESSMENT REVIEW
+        ============================================================ -->
+        <section id="tab-assessment-review" class="tab-view" aria-labelledby="assessment-review-heading">
+          <div class="max-w-5xl mx-auto space-y-6">
+            <!-- Header Banner -->
+            <div class="glass-card p-6 md:p-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div>
+                <div class="flex items-center gap-2 mb-1">
+                  <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#D31F83]/10 text-[#D31F83] text-xs font-grotesque font-bold uppercase">
+                    <i class="fa-solid fa-award text-[0.7rem]" aria-hidden="true"></i>
+                    <span>Practical Assessment Review</span>
+                  </span>
+                </div>
+                <h2 id="assessment-review-heading" class="font-grotesque text-3xl font-800 text-[var(--text-primary)] m-0">
+                  Assessment Review
+                </h2>
+                <p class="font-sans text-sm text-[var(--text-muted)] max-w-xl leading-relaxed mt-1 mb-0">
+                  Evaluate student practical submissions for Production &rarr; Designing. Inspect deliverables, examine AI evaluation, enter your mentor score, and submit reviews for admin authorization.
+                </p>
+              </div>
+
+              <!-- Top Action: Counter & Bulk Publish -->
+              <div class="flex items-center gap-3 shrink-0 flex-wrap">
+                <span id="mentorSubmittedCountBadge" class="category-pill" style="font-size:0.825rem; font-weight:700; color:#D31F83; border-color:rgba(211,31,131,0.3); background:rgba(211,31,131,0.08);">
+                  0 / 0 Evaluations Submitted
+                </span>
+                <button
+                  type="button"
+                  id="btnPublishMentorEvaluations"
+                  class="btn-primary"
+                  onclick="bulkPublishMentorEvaluations()"
+                >
+                  <i class="fa-solid fa-paper-plane text-xs"></i>
+                  <span>Publish Mentor Evaluations</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Filter Bar: Privacy notice & College filter -->
+            <div class="glass-card p-4 flex flex-wrap items-center justify-between gap-4">
+              <div class="flex flex-wrap items-center gap-4">
+                <div class="flex items-center gap-2">
+                  <label for="filterMentorCollege" class="font-grotesque text-xs font-bold uppercase tracking-wider text-[var(--text-muted)]">
+                    College:
+                  </label>
+                  <select id="filterMentorCollege" class="form-input text-xs py-1.5 px-3 rounded-lg w-auto" onchange="renderMentorAssessmentReviewView()">
+                    <option value="all">All Assigned Colleges</option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- Privacy Notice Badge -->
+              <div class="flex items-center gap-2 text-xs font-sans text-[var(--text-muted)] bg-[var(--bg-app)] px-3 py-1.5 rounded-lg border border-[var(--border-subtle)]">
+                <i class="fa-solid fa-user-shield text-[#D31F83]"></i>
+                <span>Anonymized Evaluation Mode Active (Student ID Only)</span>
+              </div>
+            </div>
+
+            <!-- Assessment Table Card -->
+            <div class="glass-card overflow-hidden">
+              <div class="p-5 border-b border-[var(--border-subtle)]">
+                <h4 class="font-grotesque text-lg font-800 text-[var(--text-primary)] m-0">
+                  Production &bull; Designing Submissions
+                </h4>
+                <p class="font-sans text-xs text-[var(--text-muted)] mt-0.5 mb-0">
+                  Deliverables submitted by students who completed Designing topics in your assigned college.
+                </p>
+              </div>
+
+              <div class="overflow-x-auto" id="mentorAsmTableContainer">
+                <table class="w-full text-left border-collapse" style="min-width: 720px;" id="mentorAsmTable">
+                  <thead>
+                    <tr class="border-b border-[var(--border-subtle)] bg-[var(--bg-app)] text-xs font-grotesque font-bold uppercase text-[var(--text-muted)] tracking-wider">
+                      <th class="py-3 px-4">Student ID</th>
+                      <th class="py-3 px-4">College</th>
+                      <th class="py-3 px-4">Assessment</th>
+                      <th class="py-3 px-4">Mentor Score</th>
+                      <th class="py-3 px-4">Status</th>
+                      <th class="py-3 px-4 text-right">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody id="mentorAsmTbody" class="font-sans text-sm divide-y divide-[var(--border-subtle)]">
+                    <!-- Populated dynamically via renderMentorAssessmentReviewView() -->
+                  </tbody>
+                </table>
+              </div>
+
+              <!-- Empty State -->
+              <div id="mentorAsmEmptyState" class="py-12 text-center hidden">
+                <div class="w-12 h-12 rounded-xl bg-[#D31F83]/10 text-[#D31F83] flex items-center justify-center text-xl mx-auto mb-3">
+                  <i class="fa-solid fa-award"></i>
+                </div>
+                <h3 class="font-grotesque text-lg font-800 text-[var(--text-primary)] m-0">
+                  No Assessment Submissions to Review
+                </h3>
+                <p class="font-sans text-sm text-[var(--text-muted)] max-w-md mx-auto mt-1 mb-0">
+                  Submitted student attempts for Designing will appear here once students in your assigned college complete their assessment.
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       MODAL: PROFILE SETTINGS (Clean interaction)
+  ============================================================ -->
+  <div id="modalProfileSettings" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="modalProfileTitle">
+    <div class="modal-window">
+      <div class="flex items-center justify-between pb-3 border-b border-[var(--border-subtle)] mb-4">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-[#D31F83]/10 text-[#D31F83] flex items-center justify-center text-lg shrink-0">
+            <i class="fa-regular fa-user" aria-hidden="true"></i>
+          </div>
+          <div>
+            <h3 id="modalProfileTitle" class="font-grotesque text-xl font-800 text-[var(--text-primary)] m-0">Profile Settings</h3>
+            <p class="font-sans text-xs text-[var(--text-muted)] mt-0.5 mb-0">Your Mentor Account Details</p>
+          </div>
+        </div>
+        <button type="button" class="text-[var(--text-muted)] hover:text-[var(--text-primary)]" onclick="closeModal('modalProfileSettings')">
+          <i class="fa-solid fa-xmark text-sm"></i>
+        </button>
+      </div>
+
+      <div class="space-y-3 font-sans text-xs text-[var(--text-label)]">
+        <div class="p-3 rounded-xl bg-[var(--bg-app)] border border-[var(--border-subtle)] space-y-2">
+          <div class="flex justify-between">
+            <span class="text-[var(--text-muted)]">Full Name:</span>
+            <strong id="modalProfileName" class="text-[var(--text-primary)]">—</strong>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-[var(--text-muted)]">Email Address:</span>
+            <strong id="modalProfileEmail" class="text-[var(--text-primary)]">—</strong>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-[var(--text-muted)]">User ID:</span>
+            <strong id="modalProfileUserId" class="text-[var(--text-primary)]">—</strong>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-[var(--text-muted)]">Role:</span>
+            <span class="font-bold text-[#D31F83]">Mentor</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-[var(--text-muted)]">College:</span>
+            <strong id="modalProfileCollege" class="text-[var(--text-primary)]">—</strong>
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-5 flex justify-end">
+        <button type="button" class="btn-primary py-2 px-4 text-xs" onclick="closeModal('modalProfileSettings')">
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       MODAL: CHANGE PASSWORD (Clean placeholder interaction)
+  ============================================================ -->
+  <div id="modalChangePassword" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="modalPassTitle">
+    <div class="modal-window">
+      <div class="flex items-center justify-between pb-3 border-b border-[var(--border-subtle)] mb-4">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-[#EDA233]/15 text-[#EDA233] flex items-center justify-center text-lg shrink-0">
+            <i class="fa-solid fa-key" aria-hidden="true"></i>
+          </div>
+          <div>
+            <h3 id="modalPassTitle" class="font-grotesque text-xl font-800 text-[var(--text-primary)] m-0">Change Password</h3>
+            <p class="font-sans text-xs text-[var(--text-muted)] mt-0.5 mb-0">Update your account security</p>
+          </div>
+        </div>
+        <button type="button" class="text-[var(--text-muted)] hover:text-[var(--text-primary)]" onclick="closeModal('modalChangePassword')">
+          <i class="fa-solid fa-xmark text-sm"></i>
+        </button>
+      </div>
+
+      <form onsubmit="handlePasswordChangeSubmit(event)" class="space-y-3 font-sans text-xs">
+        <div>
+          <label class="block text-[var(--text-muted)] font-medium mb-1">Current Password</label>
+          <input
+            type="password"
+            id="inputCurrentPassword"
+            class="w-full p-2.5 rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-input)] text-[var(--text-primary)] focus:outline-none focus:border-[#D31F83]"
+            placeholder="Enter current password"
+            required
+          />
+        </div>
+        <div>
+          <label class="block text-[var(--text-muted)] font-medium mb-1">New Password</label>
+          <input
+            type="password"
+            id="inputNewPassword"
+            class="w-full p-2.5 rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-input)] text-[var(--text-primary)] focus:outline-none focus:border-[#D31F83]"
+            placeholder="Enter new password"
+            required
+          />
+        </div>
+        <div class="pt-2 flex justify-end gap-2">
+          <button type="button" class="btn-secondary py-2 px-3 text-xs" onclick="closeModal('modalChangePassword')">Cancel</button>
+          <button type="submit" class="btn-primary py-2 px-4 text-xs">Update Password</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       MODAL: MENTOR ASSESSMENT REVIEW (Enforces Student Anonymity)
+  ============================================================ -->
+  <div id="modalMentorReviewAssessment" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="modalMentorEvalTitle">
+    <div class="modal-window max-w-3xl">
+      <div class="flex items-center justify-between pb-3 border-b border-[var(--border-subtle)] mb-4">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-[#D31F83]/10 text-[#D31F83] flex items-center justify-center text-lg shrink-0">
+            <i class="fa-solid fa-award"></i>
+          </div>
+          <div>
+            <h3 id="modalMentorEvalTitle" class="font-grotesque text-xl font-800 text-[var(--text-primary)] m-0">
+              Review Assessment: <span id="mentorEvalStudentIdDisp" class="text-[#D31F83]">STUD-001</span>
+            </h3>
+            <p class="font-sans text-xs text-[var(--text-muted)] mt-0.5 mb-0">
+              College: <strong id="mentorEvalCollegeDisp" class="text-[var(--text-primary)]">Jain University</strong> &bull; 
+              Attempt: <strong id="mentorEvalAttemptDisp" class="text-[var(--text-primary)]">#1</strong>
+            </p>
+          </div>
+        </div>
+        <button type="button" class="text-[var(--text-muted)] hover:text-[var(--text-primary)]" onclick="closeModal('modalMentorReviewAssessment')">
+          <i class="fa-solid fa-xmark text-sm"></i>
+        </button>
+      </div>
+
+      <form id="formMentorEvalAssessment" onsubmit="handleMentorAssessmentSubmit(event)" class="space-y-4 font-sans text-xs max-h-[70vh] overflow-y-auto pr-1">
+        <input type="hidden" id="mentorEvalStudentId" />
+        <input type="hidden" id="mentorEvalAttemptId" />
+
+          <!-- Deliverables Showcase: Dynamic based on submission -->
+          <div class="glass-card p-4 space-y-3">
+            <h4 class="font-grotesque text-base font-800 text-[var(--text-primary)] m-0 flex items-center gap-2">
+              <i class="fa-solid fa-box-archive text-[#D31F83]"></i> Submitted Student Deliverables
+            </h4>
+            <div id="mentorEvalDeliverablesGrid" class="grid grid-cols-1 md:grid-cols-3 gap-3">
+              <!-- Populated dynamically by openMentorAssessmentModal -->
+            </div>
+          </div>
+
+        <!-- Mentor Score Input & Remarks -->
+        <div class="glass-card p-4 space-y-3 border-2 border-[#D31F83]/30">
+          <div class="flex items-center gap-2">
+            <span class="w-7 h-7 rounded-lg bg-[#D31F83]/10 text-[#D31F83] flex items-center justify-center text-xs font-bold">
+              <i class="fa-solid fa-chalkboard-user"></i>
+            </span>
+            <h4 class="font-grotesque text-base font-800 text-[var(--text-primary)] m-0">
+              Your Mentor Evaluation
+            </h4>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label for="inputMentorScore" class="block text-[var(--text-primary)] font-bold mb-1">
+                Mentor Score (0–100) <span class="text-[#D31F83]">*</span>
+              </label>
+              <input
+                type="number"
+                id="inputMentorScore"
+                class="w-full p-2.5 rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-input)] text-[var(--text-primary)] font-grotesque font-bold text-base focus:outline-none focus:border-[#D31F83]"
+                min="0"
+                max="100"
+                placeholder="e.g. 88"
+                required
+              />
+              <p id="mentorScoreError" class="text-xs text-[#D31F83] mt-1 hidden"></p>
+            </div>
+
+            <div>
+              <label for="inputMentorRemarks" class="block text-[var(--text-primary)] font-bold mb-1">
+                Mentor Remarks / Feedback <span class="text-[var(--text-muted)] font-normal">(Optional)</span>
+              </label>
+              <textarea
+                id="inputMentorRemarks"
+                class="w-full p-2.5 rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-input)] text-[var(--text-primary)] text-xs focus:outline-none focus:border-[#D31F83]"
+                rows="2"
+                placeholder="Optional feedback on composition, alignment, rationale, and technical execution..."
+              ></textarea>
+            </div>
+          </div>
+        </div>
+
+        <div class="pt-2 flex justify-end gap-2">
+          <button type="button" class="btn-secondary py-2 px-3 text-xs" onclick="closeModal('modalMentorReviewAssessment')">Cancel</button>
+          <button type="submit" class="btn-primary py-2 px-4 text-xs">
+            <i class="fa-solid fa-check mr-1"></i> Submit Mentor Evaluation
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       MODAL: CONFIRM MENTOR BULK PUBLISH
+  ============================================================ -->
+  <div id="modalMentorBulkPublish" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="modalMentorBulkPubTitle">
+    <div class="modal-window max-w-md">
+      <div class="flex items-center justify-between pb-3 border-b border-[var(--border-subtle)] mb-4">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-[#D31F83]/10 text-[#D31F83] flex items-center justify-center text-lg shrink-0">
+            <i class="fa-solid fa-paper-plane"></i>
+          </div>
+          <div>
+            <h3 id="modalMentorBulkPubTitle" class="font-grotesque text-xl font-800 text-[var(--text-primary)] m-0">
+              Publish Mentor Evaluations
+            </h3>
+            <p class="font-sans text-xs text-[var(--text-muted)] mt-0.5 mb-0">Submit evaluations to Admin queue</p>
+          </div>
+        </div>
+        <button type="button" class="text-[var(--text-muted)] hover:text-[var(--text-primary)]" onclick="closeModal('modalMentorBulkPublish')">
+          <i class="fa-solid fa-xmark text-sm"></i>
+        </button>
+      </div>
+
+      <div class="space-y-3 font-sans text-xs text-[var(--text-primary)]">
+        <p class="m-0 leading-relaxed">
+          Are you sure you want to publish all <strong id="mentorBulkPubCountText" class="text-[#D31F83]">0</strong> submitted mentor evaluations to the Admin queue?
+        </p>
+        <div class="p-3 rounded-xl bg-[var(--bg-app)] border border-[var(--border-subtle)] space-y-1.5 text-[var(--text-muted)]">
+          <div class="flex items-center gap-2 text-emerald-600 dark:text-emerald-400 font-medium">
+            <i class="fa-solid fa-check-circle"></i>
+            <span>Submitted mentor scores will be finalized and sent to Admin.</span>
+          </div>
+          <div class="flex items-center gap-2 text-[#EDA233]">
+            <i class="fa-solid fa-clock"></i>
+            <span>Pending student assessments (<span id="mentorBulkPubPendingText">0</span>) will remain pending and editable.</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-5 flex justify-end gap-2 pt-2 border-t border-[var(--border-subtle)]">
+        <button type="button" class="btn-secondary text-xs" onclick="closeModal('modalMentorBulkPublish')">Cancel</button>
+        <button type="button" class="btn-primary text-xs" id="btnConfirmMentorBulkPublish" onclick="confirmBulkPublishMentorEvaluations()">
+          <i class="fa-solid fa-check mr-1"></i> Confirm &amp; Publish
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       MODAL: FULL IMAGE PREVIEW (MENTOR)
+  ============================================================ -->
+  <div id="modalMentorViewImageFull" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="modalMentorFullImgTitle">
+    <div class="modal-window max-w-4xl">
+      <div class="flex items-center justify-between pb-3 border-b border-[var(--border-subtle)] mb-3">
+        <h3 id="modalMentorFullImgTitle" class="font-grotesque text-xl font-800 text-[var(--text-primary)] m-0">
+          Final Design PNG Preview
+        </h3>
+        <button type="button" class="text-[var(--text-muted)] hover:text-[var(--text-primary)]" onclick="closeModal('modalMentorViewImageFull')">
+          <i class="fa-solid fa-xmark text-sm"></i>
+        </button>
+      </div>
+      <div class="p-2 flex items-center justify-center bg-black/90 rounded-xl overflow-hidden min-h-[300px]">
+        <img id="mentorFullPreviewImageSrc" src="" alt="Full Preview" class="max-h-[75vh] max-w-full object-contain" />
+      </div>
+      <div class="mt-3 flex justify-end">
+        <button type="button" class="btn-secondary py-1.5 px-4 text-xs" onclick="closeModal('modalMentorViewImageFull')">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       TOAST NOTIFICATION
+  ============================================================ -->
+  <div id="toast" role="status" aria-live="polite">
+    <i id="toastIcon" class="fa-solid fa-circle-check text-emerald-400" aria-hidden="true"></i>
+    <span id="toastText">Notification message</span>
+  </div>
+
+  <!-- ============================================================
+       APPLICATION SCRIPT
+  ============================================================ -->
+  <script>
+    /* ──────────────────────────────────────────────
+       CONSTANTS & LOCAL STORAGE KEYS
+    ────────────────────────────────────────────── */
+    const LS_CURRENT_USER = 'currentUser';
+    const LS_THEME        = 'rizz_theme';
+    const LS_WORKSHOPS    = 'rizzWorkshopData';
+    const LS_COMPLETIONS  = 'rizz_workshop_completions';
+
+    /* Universal Backend API URL Resolver for Multi-Device & Localhost Sync */
+    function getBackendApiUrl(path) {
+      if (typeof window === 'undefined' || !window.location) return path;
+      var loc = window.location;
+      if (loc.protocol === 'file:') {
+        return 'http://localhost:8080' + path;
+      }
+      if (loc.port && loc.port !== '8080') {
+        var host = loc.hostname || 'localhost';
+        return loc.protocol + '//' + host + ':8080' + path;
+      }
+      return path;
+    }
+
+    const currentUser = (function () {
+      try {
+        return JSON.parse(localStorage.getItem(LS_CURRENT_USER)) || {};
+      } catch (e) {
+        return {};
+      }
+    })();
+
+    let currentTrackFilter = 'all';
+
+    /* ──────────────────────────────────────────────
+       THEME MANAGEMENT
+    ────────────────────────────────────────────── */
+    const htmlEl       = document.documentElement;
+    const themeToggle  = document.getElementById('themeToggle');
+    const themeIcon    = document.getElementById('themeIcon');
+    const themeLabel   = document.getElementById('themeLabel');
+    const sidebarLogo  = document.getElementById('sidebarLogo');
+
+    function applyTheme(theme) {
+      const isDark = theme === 'dark';
+      if (isDark) {
+        htmlEl.classList.add('dark');
+      } else {
+        htmlEl.classList.remove('dark');
+      }
+
+      if (sidebarLogo) {
+        sidebarLogo.src = isDark ? 'logo-dark.png' : 'logo-light.png';
+      }
+
+      if (themeIcon && themeLabel) {
+        if (isDark) {
+          themeIcon.className  = 'fa-solid fa-moon text-[0.75rem]';
+          themeLabel.textContent = 'Dark';
+        } else {
+          themeIcon.className  = 'fa-solid fa-sun text-[0.75rem]';
+          themeLabel.textContent = 'Light';
+        }
+      }
+
+      localStorage.setItem(LS_THEME, theme);
+    }
+
+    if (themeToggle) {
+      themeToggle.addEventListener('click', function () {
+        const isDark = htmlEl.classList.contains('dark');
+        applyTheme(isDark ? 'light' : 'dark');
+      });
+    }
+
+    /* ──────────────────────────────────────────────
+       TOAST HELPER
+    ────────────────────────────────────────────── */
+    let toastTimer = null;
+    function showToast(message, iconClass) {
+      const toastEl = document.getElementById('toast');
+      const toastText = document.getElementById('toastText');
+      const toastIcon = document.getElementById('toastIcon');
+      if (!toastEl) return;
+
+      if (toastTimer) clearTimeout(toastTimer);
+      if (toastText) toastText.textContent = message;
+      if (toastIcon) toastIcon.className = iconClass || 'fa-solid fa-circle-check text-emerald-400';
+
+      toastEl.classList.add('show');
+      toastTimer = setTimeout(function () {
+        toastEl.classList.remove('show');
+      }, 3200);
+    }
+
+    /* ──────────────────────────────────────────────
+       MODAL CONTROLS
+    ────────────────────────────────────────────── */
+    function openModal(id) {
+      const el = document.getElementById(id);
+      if (el) el.classList.add('active');
+    }
+
+    function closeModal(id) {
+      const el = document.getElementById(id);
+      if (el) el.classList.remove('active');
+    }
+
+    function openProfileSettingsModal() {
+      toggleProfileDropdown(false);
+      openModal('modalProfileSettings');
+    }
+
+    function openChangePasswordModal() {
+      toggleProfileDropdown(false);
+      openModal('modalChangePassword');
+    }
+
+    function handlePasswordChangeSubmit(e) {
+      e.preventDefault();
+      closeModal('modalChangePassword');
+      showToast('Password updated successfully!', 'fa-solid fa-circle-check text-emerald-400');
+      const curInput = document.getElementById('inputCurrentPassword');
+      const newInput = document.getElementById('inputNewPassword');
+      if (curInput) curInput.value = '';
+      if (newInput) newInput.value = '';
+    }
+
+    function toggleProfileDropdown(forceState) {
+      const dd = document.getElementById('profileDropdown');
+      if (!dd) return;
+      if (typeof forceState === 'boolean') {
+        dd.classList.toggle('hidden', !forceState);
+      } else {
+        dd.classList.toggle('hidden');
+      }
+    }
+
+    // Close dropdown on outside click
+    document.addEventListener('click', function (e) {
+      const cluster = document.getElementById('profileCluster');
+      const dd = document.getElementById('profileDropdown');
+      if (cluster && dd && !cluster.contains(e.target)) {
+        dd.classList.add('hidden');
+      }
+    });
+
+    /* ──────────────────────────────────────────────
+       MOBILE SIDEBAR TOGGLE
+    ────────────────────────────────────────────── */
+    function toggleMobileSidebar(open) {
+      const sb = document.getElementById('sidebar');
+      const bd = document.getElementById('mobile-sidebar-backdrop');
+      if (sb) sb.classList.toggle('open', open);
+      if (bd) bd.classList.toggle('open', open);
+    }
+
+    /* ──────────────────────────────────────────────
+       LOGOUT HANDLER
+    ────────────────────────────────────────────── */
+    function handleLogout() {
+      localStorage.removeItem(LS_CURRENT_USER);
+      window.location.href = 'index.html';
+    }
+
+    /* ──────────────────────────────────────────────
+       TAB NAVIGATION
+    ────────────────────────────────────────────── */
+    function switchTab(tabId) {
+      const navItems = document.querySelectorAll('.nav-item');
+      navItems.forEach(function (item) {
+        const isTarget = item.getAttribute('data-tab') === tabId;
+        item.classList.toggle('active', isTarget);
+        if (isTarget) item.setAttribute('aria-current', 'page');
+        else item.removeAttribute('aria-current');
+      });
+
+      const tabHome = document.getElementById('tab-home');
+      const tabWorkshops = document.getElementById('tab-workshops');
+      const tabAsm = document.getElementById('tab-assessment-review');
+      const headerTitle = document.getElementById('headerPageTitle');
+
+      if (tabHome) tabHome.classList.toggle('active', tabId === 'home');
+      if (tabWorkshops) tabWorkshops.classList.toggle('active', tabId === 'workshops');
+      if (tabAsm) tabAsm.classList.toggle('active', tabId === 'assessment-review');
+
+      if (tabId === 'home') {
+        if (headerTitle) headerTitle.textContent = 'Mentor Console — Home';
+        renderMentorHome();
+      } else if (tabId === 'workshops') {
+        if (headerTitle) headerTitle.textContent = 'My Workshops';
+        renderMyWorkshops();
+      } else if (tabId === 'assessment-review') {
+        if (headerTitle) headerTitle.textContent = 'Practical Assessment Review';
+        renderMentorAssessmentReviewView();
+      }
+
+      toggleMobileSidebar(false);
+    }
+
+    /* ──────────────────────────────────────────────
+       WORKSHOP DATA & ASSIGNMENT RESOLUTION ENGINE
+    ────────────────────────────────────────────── */
+    const DEFAULT_WORKSHOPS = {
+      categories: [
+        {
+          id: 'production',
+          name: 'Production',
+          description: 'Designing, video editing, cinematography, creative direction & production arts.',
+          icon: 'fa-solid fa-pen-ruler',
+          subsets: [
+            {
+              id: 'sub_designing',
+              name: 'Designing',
+              description: 'Graphic design, visual branding, Figma, Adobe Illustrator and layout systems.',
+              topics: [
+                {
+                  id: 'top_prod_design_1',
+                  name: 'Graphic Designing & Brand Identity',
+                  description: 'Color Theory, Grid Systems, Figma, Adobe Illustrator layout',
+                  mentor: 'Rohan Verma',
+                  hours: '3',
+                  date: '2026-10-14'
+                }
+              ]
+            },
+            {
+              id: 'sub_videoediting',
+              name: 'Video Editing',
+              description: 'High-retention video editing, pacing, motion captions and DaVinci Resolve.',
+              topics: [
+                {
+                  id: 'top_prod_video_1',
+                  name: 'High-Retention Video Editing',
+                  description: 'Timeline Pacing, Audio Ducking, Motion Captions, DaVinci Resolve',
+                  mentor: 'Priya Nair',
+                  hours: '3',
+                  date: '2026-10-21'
+                }
+              ]
+            },
+            {
+              id: 'sub_cinematography',
+              name: 'Cinematography',
+              description: 'Narrative cinematography, lighting, camera framing and exposure.',
+              topics: [
+                {
+                  id: 'top_prod_cine_1',
+                  name: 'Narrative Cinematography & Lighting',
+                  description: '3-Point Lighting, Camera Framing, Aperture & Exposure, BTS Logs',
+                  mentor: 'Vikramaditya Singh',
+                  hours: '4',
+                  date: '2026-10-28'
+                }
+              ]
+            }
+          ]
+        },
+        {
+          id: 'strategy',
+          name: 'Strategy',
+          description: 'Business analysis, consulting frameworks, competitive market expansion & strategic planning.',
+          icon: 'fa-solid fa-chess',
+          subsets: [
+            {
+              id: 'sub_socialmedia',
+              name: 'Social Media Management',
+              description: 'Social media strategy, Instagram funnels, content calendars and analytics.',
+              topics: [
+                {
+                  id: 'top_strat_smm_1',
+                  name: 'Social Media Strategy & SMM Systems',
+                  description: 'Instagram Funnels, Content Calendars, Community Hooks, Analytics',
+                  mentor: 'Meera Kapoor',
+                  hours: '3',
+                  date: '2026-11-04'
+                }
+              ]
+            },
+            {
+              id: 'sub_contentwriting',
+              name: 'Content Writing',
+              description: 'Content writing for D2C brands, ad copy, landing page copy and brand voice.',
+              topics: [
+                {
+                  id: 'top_strat_cw_1',
+                  name: 'Content Writing for D2C Brands',
+                  description: 'Landing Page Copy, Ad Scripts, Email Sequences, Brand Voice',
+                  mentor: 'Arjun Menon',
+                  hours: '3',
+                  date: '2026-11-11'
+                }
+              ]
+            },
+            {
+              id: 'sub_perfmarketing',
+              name: 'Performance Marketing',
+              description: 'Performance marketing, Meta ads, CAC basics and creative testing.',
+              topics: [
+                {
+                  id: 'top_strat_perf_1',
+                  name: 'Performance Marketing & Campaign Execution',
+                  description: 'Meta Ads, Creative Testing, CAC Basics',
+                  mentor: 'Nisha Bansal',
+                  hours: '4',
+                  date: '2026-11-18'
+                }
+              ]
+            },
+            {
+              id: 'sub_marketingstrategy',
+              name: 'Marketing Strategy',
+              description: 'Business strategy sprint, market expansion and client communication.',
+              topics: [
+                {
+                  id: 'top_strat_ms_1',
+                  name: 'Business Strategy Sprint & Client Communication',
+                  description: 'Competitive Positioning, Growth Sprints, Client Communication',
+                  mentor: 'Nisha Bansal',
+                  hours: '4',
+                  date: '2026-11-18'
+                }
+              ]
+            }
+          ]
+        },
+        {
+          id: 'tech',
+          name: 'Tech',
+          description: 'Full-stack engineering, cloud architecture, system design, databases & emerging technologies.',
+          icon: 'fa-solid fa-microchip',
+          subsets: [
+            {
+              id: 'sub_webdev',
+              name: 'Website Development',
+              description: 'Web development for creative portfolios, HTML/CSS and responsive UI.',
+              topics: [
+                {
+                  id: 'top_tech_web_1',
+                  name: 'Web Dev for Creative Portfolios',
+                  description: 'HTML/CSS, Landing Pages, Responsive UI, Portfolio Hosting',
+                  mentor: 'Devika Rao',
+                  hours: '3',
+                  date: '2026-12-02'
+                }
+              ]
+            },
+            {
+              id: 'sub_ai',
+              name: 'AI & Automation',
+              description: 'AI automation workflows, prompt systems and content automation.',
+              topics: [
+                {
+                  id: 'top_tech_ai_1',
+                  name: 'AI Automation for Campus Creators',
+                  description: 'Prompt Systems, Zapier Flows, Lead Capture, Content Automation',
+                  mentor: 'Kabir Sethi',
+                  hours: '3',
+                  date: '2026-12-09'
+                }
+              ]
+            },
+            {
+              id: 'sub_seo',
+              name: 'SEO, AEO & GEO (Content-Led)',
+              description: 'Search engine optimization, generative engine optimization, Airtable and Notion ops.',
+              topics: [
+                {
+                  id: 'top_tech_seo_1',
+                  name: 'No-Code Business Systems & GEO Search Optimization',
+                  description: 'Airtable, Notion Ops, CRM Basics, Dashboard Thinking, Search Engine Optimization',
+                  mentor: 'Tanya Iyer',
+                  hours: '4',
+                  date: '2026-12-16'
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    };
+
+    function loadWorkshopData() {
+      try {
+        const raw = localStorage.getItem(LS_WORKSHOPS);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (parsed && Array.isArray(parsed.categories)) {
+            DEFAULT_WORKSHOPS.categories.forEach(function (defCat) {
+              const exists = parsed.categories.find(function (c) { return c.id === defCat.id; });
+              if (!exists) {
+                parsed.categories.push(JSON.parse(JSON.stringify(defCat)));
+              } else if (!Array.isArray(exists.subsets) || exists.subsets.length === 0) {
+                exists.subsets = JSON.parse(JSON.stringify(defCat.subsets || []));
+              }
+            });
+            return parsed;
+          }
+        }
+      } catch (e) {
+        console.error('Error reading workshop data:', e);
+      }
+      return JSON.parse(JSON.stringify(DEFAULT_WORKSHOPS));
+    }
+
+    function saveWorkshopData(data) {
+      try {
+        localStorage.setItem(LS_WORKSHOPS, JSON.stringify(data));
+      } catch (e) {
+        console.error('Error saving workshop data:', e);
+      }
+    }
+
+    /**
+     * Inheritance Resolution:
+     * Topic Override > Subset Assignment > Track Assignment
+     */
+    function getEffectiveMentor(topic, subset, category) {
+      // 1. Topic level
+      if (topic && (topic.mentorUserId || topic.mentorEmail || topic.mentor)) {
+        return {
+          userId: topic.mentorUserId || '',
+          email:  topic.mentorEmail || '',
+          name:   topic.mentor || ''
+        };
+      }
+      // 2. Subset level
+      if (subset && (subset.mentorUserId || subset.mentorEmail || subset.mentor)) {
+        return {
+          userId: subset.mentorUserId || '',
+          email:  subset.mentorEmail || '',
+          name:   subset.mentor || ''
+        };
+      }
+      // 3. Category/Track level
+      if (category && (category.mentorUserId || category.mentorEmail || category.mentor)) {
+        return {
+          userId: category.mentorUserId || '',
+          email:  category.mentorEmail || '',
+          name:   category.mentor || ''
+        };
+      }
+      return { userId: '', email: '', name: '' };
+    }
+
+    /**
+     * Match effective mentor with currentUser
+     */
+    function isAssignedToMentor(effective, user) {
+      if (!user) return false;
+      const uId    = String(user.userId || '').trim().toLowerCase();
+      const uEmail = String(user.email || '').trim().toLowerCase();
+      const uName  = String(user.name || '').trim().toLowerCase();
+
+      const effId    = String(effective.userId || '').trim().toLowerCase();
+      const effEmail = String(effective.email || '').trim().toLowerCase();
+      const effName  = String(effective.name || '').trim().toLowerCase();
+
+      if (uId && effId && uId === effId) return true;
+      if (uEmail && effEmail && uEmail === effEmail) return true;
+      if (uName && effName && (uName === effName || effName.includes(uName) || uName.includes(effName))) return true;
+      if (effName && uId && effName.includes(uId)) return true;
+
+      return false;
+    }
+
+    function formatDisplayDate(dateStr) {
+      if (!dateStr) return '—';
+      try {
+        const parts = dateStr.split('-');
+        if (parts.length !== 3) return dateStr;
+        const year = parseInt(parts[0], 10);
+        const month = parseInt(parts[1], 10) - 1;
+        const day = parseInt(parts[2], 10);
+        const d = new Date(year, month, day);
+        return d.toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' });
+      } catch (e) {
+        return dateStr;
+      }
+    }
+
+    function formatHours(hours) {
+      const num = parseFloat(hours);
+      if (isNaN(num) || num < 0) return '0 hrs';
+      return num === 1 ? '1 hr' : num + ' hrs';
+    }
+
+    /**
+     * Collects all assigned workshop tracks, subsets, and topics for the current mentor
+     */
+    function getMentorAssignedHierarchy() {
+      const wsData = loadWorkshopData();
+      let completions = {};
+      try {
+        completions = JSON.parse(localStorage.getItem(LS_COMPLETIONS) || '{}');
+      } catch (e) {}
+
+      const assignedTracks = [];
+      const allAssignedTopics = [];
+
+      (wsData.categories || []).forEach(function (cat, cIdx) {
+        const matchingSubsets = [];
+
+        (cat.subsets || []).forEach(function (subset, sIdx) {
+          const matchingTopics = [];
+
+          (subset.topics || []).forEach(function (topic, tIdx) {
+            // Ensure stable topic ID
+            if (!topic.id) {
+              topic.id = 'top_' + cat.id + '_' + sIdx + '_' + tIdx;
+            }
+
+            const effMentor = getEffectiveMentor(topic, subset, cat);
+
+            if (isAssignedToMentor(effMentor, currentUser)) {
+              // Check completion from topic property or completions map
+              const isCompleted = Boolean(
+                topic.completed === true ||
+                (completions[topic.id] && completions[topic.id].completed === true)
+              );
+
+              const topicRecord = {
+                ...topic,
+                effectiveMentor: effMentor,
+                completed: isCompleted,
+                completedAt: topic.completedAt || (completions[topic.id] ? completions[topic.id].completedAt : null),
+                catId: cat.id,
+                catName: cat.name,
+                catIcon: cat.icon || (cat.id === 'production' ? 'fa-solid fa-pen-ruler' : (cat.id === 'strategy' ? 'fa-solid fa-chess' : 'fa-solid fa-microchip')),
+                subsetName: subset.name
+              };
+
+              matchingTopics.push(topicRecord);
+              allAssignedTopics.push(topicRecord);
+            }
+          });
+
+          if (matchingTopics.length > 0) {
+            matchingSubsets.push({
+              id: subset.id || ('sub_' + cat.id + '_' + sIdx),
+              name: subset.name || 'Subset',
+              description: subset.description || '',
+              topics: matchingTopics,
+              totalCount: matchingTopics.length,
+              completedCount: matchingTopics.filter(function (t) { return t.completed; }).length
+            });
+          }
+        });
+
+        if (matchingSubsets.length > 0) {
+          const trackTopics = matchingSubsets.reduce(function (sum, s) { return sum + s.totalCount; }, 0);
+          const trackCompleted = matchingSubsets.reduce(function (sum, s) { return sum + s.completedCount; }, 0);
+
+          assignedTracks.push({
+            id: cat.id,
+            name: cat.name,
+            description: cat.description,
+            icon: cat.icon || (cat.id === 'production' ? 'fa-solid fa-pen-ruler' : (cat.id === 'strategy' ? 'fa-solid fa-chess' : 'fa-solid fa-microchip')),
+            subsets: matchingSubsets,
+            totalCount: trackTopics,
+            completedCount: trackCompleted,
+            progressPercent: trackTopics > 0 ? Math.round((trackCompleted / trackTopics) * 100) : 0
+          });
+        }
+      });
+
+      const totalAssigned = allAssignedTopics.length;
+      const totalCompleted = allAssignedTopics.filter(function (t) { return t.completed; }).length;
+      const totalRemaining = totalAssigned - totalCompleted;
+      const overallPercent = totalAssigned > 0 ? Math.round((totalCompleted / totalAssigned) * 100) : 0;
+
+      return {
+        assignedTracks,
+        allAssignedTopics,
+        totalAssigned,
+        totalCompleted,
+        totalRemaining,
+        overallPercent
+      };
+    }
+
+    /* ──────────────────────────────────────────────
+       TOPIC COMPLETION TOGGLE
+    ────────────────────────────────────────────── */
+    function toggleTopicCompletion(topicId, isCompleted) {
+      if (!topicId) return;
+
+      const wsData = loadWorkshopData();
+      let completions = {};
+      try {
+        completions = JSON.parse(localStorage.getItem(LS_COMPLETIONS) || '{}');
+      } catch (e) {}
+
+      let topicFound = false;
+      const nowIso = isCompleted ? new Date().toISOString() : null;
+
+      // Update in workshopData
+      (wsData.categories || []).forEach(function (cat, cIdx) {
+        (cat.subsets || []).forEach(function (subset, sIdx) {
+          (subset.topics || []).forEach(function (t, tIdx) {
+            const currentId = t.id || ('top_' + cat.id + '_' + sIdx + '_' + tIdx);
+            if (currentId === topicId) {
+              t.id = currentId;
+              t.completed = isCompleted;
+              t.completedAt = nowIso;
+              t.completedBy = isCompleted ? (currentUser.userId || 'MEN-001') : null;
+              topicFound = true;
+            }
+          });
+        });
+      });
+
+      if (topicFound) {
+        saveWorkshopData(wsData);
+      }
+
+      // Update in completions map
+      completions[topicId] = {
+        topicId: topicId,
+        mentorUserId: currentUser.userId || 'MEN-001',
+        completedByMentorUserId: currentUser.userId || 'MEN-001',
+        completed: isCompleted,
+        completedAt: nowIso,
+        updatedAt: new Date().toISOString()
+      };
+      try {
+        localStorage.setItem(LS_COMPLETIONS, JSON.stringify(completions));
+      } catch (e) {}
+
+      // Dual-sync to backend
+      try {
+        fetch(getBackendApiUrl('/api/workshop/completions'), {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ topicId: topicId, completion: completions[topicId] })
+        }).catch(function () {});
+      } catch (e) {}
+
+      // Re-render UI
+      renderMentorHome();
+      renderMyWorkshops();
+
+      if (isCompleted) {
+        showToast('Topic marked as Completed! Delivery progress updated.', 'fa-solid fa-circle-check text-emerald-400');
+      } else {
+        showToast('Topic marked as Incomplete.', 'fa-solid fa-rotate-left text-[#EDA233]');
+      }
+    }
+
+    /* ──────────────────────────────────────────────
+       RENDER: MENTOR HOME VIEW
+    ────────────────────────────────────────────── */
+    function getTimeGreeting() {
+      const hour = new Date().getHours();
+      if (hour >= 4 && hour < 12) return 'Good morning';
+      if (hour >= 12 && hour < 17) return 'Good afternoon';
+      return 'Good evening';
+    }
+
+    function renderMentorHome() {
+      const data = getMentorAssignedHierarchy();
+
+      // Greeting
+      const prefixEl = document.getElementById('mentorGreetingPrefix');
+      if (prefixEl) prefixEl.textContent = getTimeGreeting() + ', ';
+
+      const nameEl = document.getElementById('mentorGreetingName');
+      if (nameEl) nameEl.textContent = currentUser.name || 'Mentor';
+
+      // College badge
+      const badgeEl = document.getElementById('mentorCollegeBadge');
+      const collegeEl = document.getElementById('mentorCollegeName');
+      if (badgeEl && collegeEl) {
+        if (currentUser.college) {
+          collegeEl.textContent = currentUser.college;
+          badgeEl.classList.remove('hidden');
+        } else {
+          badgeEl.classList.add('hidden');
+        }
+      }
+
+      // Metrics
+      const assignedCountEl  = document.getElementById('metricAssignedCount');
+      const completedCountEl = document.getElementById('metricCompletedCount');
+      const remainingCountEl = document.getElementById('metricRemainingCount');
+
+      if (assignedCountEl)  assignedCountEl.textContent  = data.totalAssigned;
+      if (completedCountEl) completedCountEl.textContent = data.totalCompleted;
+      if (remainingCountEl) remainingCountEl.textContent = data.totalRemaining;
+
+      // Progress bar
+      const progressPercentEl  = document.getElementById('homeProgressPercent');
+      const progressFractionEl = document.getElementById('homeProgressFraction');
+      const progressBarEl      = document.getElementById('homeProgressBar');
+
+      if (progressPercentEl)  progressPercentEl.textContent  = data.overallPercent + '%';
+      if (progressFractionEl) progressFractionEl.textContent = `(${data.totalCompleted} / ${data.totalAssigned} completed)`;
+      if (progressBarEl)      progressBarEl.style.width      = data.overallPercent + '%';
+
+      // Recent / Active Topics preview list
+      const listContainer = document.getElementById('homeRecentTopicsList');
+      if (!listContainer) return;
+
+      if (data.totalAssigned === 0) {
+        listContainer.innerHTML = `
+          <div class="placeholder-page py-8">
+            <div class="placeholder-icon mb-2">
+              <i class="fa-solid fa-chalkboard-user"></i>
+            </div>
+            <h4 class="font-grotesque text-lg font-800 text-[var(--text-primary)] m-0">No Assigned Workshop Topics</h4>
+            <p class="font-sans text-xs text-[var(--text-muted)] max-w-sm m-0">
+              No workshop topics have been assigned to your mentor account yet. Assigned modules will appear here automatically.
+            </p>
+          </div>
+        `;
+        return;
+      }
+
+      // Show first 4 assigned topics
+      const previewTopics = data.allAssignedTopics.slice(0, 4);
+      let html = '';
+
+      previewTopics.forEach(function (topic) {
+        const isDone = topic.completed;
+        const statusHtml = isDone
+          ? `<span class="status-badge completed"><i class="fa-solid fa-circle-check"></i> Completed</span>`
+          : `<span class="status-badge upcoming"><i class="fa-regular fa-clock"></i> Upcoming</span>`;
+
+        const actionBtn = isDone
+          ? `<button type="button" class="btn-sm-secondary" onclick="toggleTopicCompletion('${escapeHtml(topic.id)}', false)" title="Mark as incomplete"><i class="fa-solid fa-rotate-left mr-1"></i> Completed (Undo)</button>`
+          : `<button type="button" class="btn-sm-primary" onclick="toggleTopicCompletion('${escapeHtml(topic.id)}', true)"><i class="fa-solid fa-check mr-1"></i> Mark Completed</button>`;
+
+        html += `
+          <div class="p-4 rounded-xl bg-[var(--bg-app)] border border-[var(--border-subtle)] hover:border-[#D31F83]/30 transition-colors flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div class="space-y-1">
+              <div class="flex items-center gap-2 flex-wrap">
+                ${statusHtml}
+                <span class="category-pill text-xs font-bold text-[#D31F83]">
+                  <i class="${escapeHtml(topic.catIcon)} text-[0.65rem] mr-1"></i> ${escapeHtml(topic.catName)} &bull; ${escapeHtml(topic.subsetName)}
+                </span>
+              </div>
+              <h4 class="font-grotesque font-bold text-base text-[var(--text-primary)] m-0">
+                ${escapeHtml(topic.name)}
+              </h4>
+              <div class="flex items-center gap-3 text-xs text-[var(--text-muted)] font-sans flex-wrap pt-0.5">
+                <span><i class="fa-regular fa-clock text-[#EDA233] mr-1"></i> ${formatHours(topic.hours)}</span>
+                <span><i class="fa-regular fa-calendar text-[#EDA233] mr-1"></i> ${formatDisplayDate(topic.date)}</span>
+              </div>
+            </div>
+
+            <div class="shrink-0 pt-2 sm:pt-0">
+              ${actionBtn}
+            </div>
+          </div>
+        `;
+      });
+
+      listContainer.innerHTML = html;
+    }
+
+    /* ──────────────────────────────────────────────
+       RENDER: MY WORKSHOPS VIEW
+    ────────────────────────────────────────────── */
+    function setTrackFilter(filter) {
+      currentTrackFilter = filter;
+      const pills = document.querySelectorAll('#workshopFilterPills .filter-pill');
+      pills.forEach(function (pill) {
+        const matches = pill.getAttribute('data-filter') === filter;
+        if (matches) {
+          pill.className = 'filter-pill px-3 py-1.5 rounded-xl border border-[#D31F83] bg-[#D31F83]/10 text-[#D31F83] text-xs font-bold font-grotesque uppercase transition-colors';
+        } else {
+          pill.className = 'filter-pill px-3 py-1.5 rounded-xl border border-[var(--border-subtle)] text-[var(--text-muted)] hover:border-[#D31F83]/40 text-xs font-bold font-grotesque uppercase transition-colors';
+        }
+      });
+      renderMyWorkshops();
+    }
+
+    function renderMyWorkshops() {
+      const container = document.getElementById('myWorkshopsContainer');
+      if (!container) return;
+
+      const data = getMentorAssignedHierarchy();
+
+      if (data.totalAssigned === 0) {
+        container.innerHTML = `
+          <div class="glass-card p-10 text-center placeholder-page">
+            <div class="placeholder-icon mb-3">
+              <i class="fa-solid fa-chalkboard-user"></i>
+            </div>
+            <h3 class="font-grotesque text-2xl font-800 text-[var(--text-primary)] m-0">No Assigned Workshop Topics</h3>
+            <p class="font-sans text-sm text-[var(--text-muted)] max-w-md mx-auto mt-1 mb-0 leading-relaxed">
+              No workshop topics have been assigned to your mentor account yet. When Admin assigns workshop modules or topics to you, they will appear here automatically.
+            </p>
+          </div>
+        `;
+        return;
+      }
+
+      // Filter tracks if a filter is active
+      const filteredTracks = data.assignedTracks.filter(function (track) {
+        if (currentTrackFilter === 'all') return true;
+        return track.id.toLowerCase() === currentTrackFilter.toLowerCase();
+      });
+
+      if (filteredTracks.length === 0) {
+        container.innerHTML = `
+          <div class="glass-card p-8 text-center placeholder-page">
+            <div class="placeholder-icon mb-2">
+              <i class="fa-solid fa-filter"></i>
+            </div>
+            <h4 class="font-grotesque text-xl font-800 text-[var(--text-primary)] m-0">No Topics in this Track</h4>
+            <p class="font-sans text-sm text-[var(--text-muted)] max-w-sm mx-auto mt-1 mb-0">
+              You do not have any assigned topics under the selected track filter.
+            </p>
+          </div>
+        `;
+        return;
+      }
+
+      let html = '';
+
+      filteredTracks.forEach(function (track) {
+        let subsetsHtml = '';
+
+        track.subsets.forEach(function (subset) {
+          let topicsHtml = '';
+
+          subset.topics.forEach(function (topic) {
+            const isDone = topic.completed;
+            const statusHtml = isDone
+              ? `<span class="status-badge completed"><i class="fa-solid fa-circle-check"></i> Completed</span>`
+              : `<span class="status-badge upcoming"><i class="fa-regular fa-clock"></i> Upcoming</span>`;
+
+            const actionBtn = isDone
+              ? `<button type="button" class="btn-sm-secondary" onclick="toggleTopicCompletion('${escapeHtml(topic.id)}', false)" title="Mark as incomplete"><i class="fa-solid fa-rotate-left mr-1.5"></i> Completed (Undo)</button>`
+              : `<button type="button" class="btn-sm-primary" onclick="toggleTopicCompletion('${escapeHtml(topic.id)}', true)"><i class="fa-solid fa-check mr-1.5"></i> Mark Completed</button>`;
+
+            topicsHtml += `
+              <div class="topic-item-row">
+                <div class="space-y-1.5 flex-1 pr-2">
+                  <div class="flex items-center gap-2 flex-wrap">
+                    ${statusHtml}
+                    <!-- STRICTLY NO TOPIC NUMBERS -->
+                    <span class="font-grotesque font-bold text-lg text-[var(--text-primary)]">
+                      ${escapeHtml(topic.name)}
+                    </span>
+                  </div>
+
+                  ${topic.description ? `<p class="font-sans text-xs text-[var(--text-muted)] m-0 leading-relaxed">${escapeHtml(topic.description)}</p>` : ''}
+
+                  <div class="flex flex-wrap items-center gap-3 pt-1 text-xs text-[var(--text-muted)] font-sans">
+                    <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg bg-[var(--bg-app)] border border-[var(--border-subtle)]">
+                      <i class="fa-regular fa-clock text-[#EDA233]" aria-hidden="true"></i>
+                      ${escapeHtml(formatHours(topic.hours))}
+                    </span>
+                    <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg bg-[var(--bg-app)] border border-[var(--border-subtle)]">
+                      <i class="fa-regular fa-calendar text-[#EDA233]" aria-hidden="true"></i>
+                      ${escapeHtml(formatDisplayDate(topic.date))}
+                    </span>
+                    <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg bg-[var(--bg-app)] border border-[var(--border-subtle)]">
+                      <i class="fa-solid fa-chalkboard-user text-[#D31F83]" aria-hidden="true"></i>
+                      ${escapeHtml(topic.mentor || currentUser.name || 'Assigned Mentor')}
+                    </span>
+                    ${isDone && topic.completedAt ? `<span class="text-emerald-600 dark:text-emerald-400 font-medium"><i class="fa-solid fa-check mr-1"></i> Delivered: ${formatDisplayDate(topic.completedAt)}</span>` : ''}
+                  </div>
+                </div>
+
+                <div class="shrink-0 flex items-center gap-2 pt-2 sm:pt-0">
+                  ${actionBtn}
+                </div>
+              </div>
+            `;
+          });
+
+          const subsetPercent = subset.totalCount > 0 ? Math.round((subset.completedCount / subset.totalCount) * 100) : 0;
+
+          subsetsHtml += `
+            <div class="border border-[var(--border-subtle)] rounded-2xl overflow-hidden bg-[var(--bg-card)]">
+              <!-- Subset Header -->
+              <div class="p-4 bg-[var(--bg-app)] border-b border-[var(--border-subtle)] flex items-center justify-between gap-4">
+                <div class="flex items-center gap-2.5">
+                  <span class="w-7 h-7 rounded-xl bg-[#D31F83]/10 text-[#D31F83] text-xs font-bold flex items-center justify-center shrink-0">
+                    <i class="fa-solid fa-layer-group"></i>
+                  </span>
+                  <div>
+                    <h4 class="font-grotesque text-xl font-800 text-[var(--text-primary)] m-0 leading-tight">
+                      ${escapeHtml(subset.name)}
+                    </h4>
+                    ${subset.description ? `<p class="font-sans text-[11px] text-[var(--text-muted)] m-0">${escapeHtml(subset.description)}</p>` : ''}
+                  </div>
+                </div>
+
+                <div class="flex items-center gap-3 shrink-0 text-xs">
+                  <span class="font-grotesque font-bold text-[var(--text-label)]">
+                    ${subset.completedCount} / ${subset.totalCount} completed
+                  </span>
+                  <span class="category-pill font-bold">
+                    ${subsetPercent}%
+                  </span>
+                </div>
+              </div>
+
+              <!-- Topics List -->
+              <div class="divide-y divide-[var(--border-subtle)]">
+                ${topicsHtml}
+              </div>
+            </div>
+          `;
+        });
+
+        html += `
+          <div class="track-section-card space-y-4 p-5 md:p-6">
+            <!-- Track Header Bar -->
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[var(--border-subtle)] pb-4">
+              <div class="flex items-center gap-3">
+                <div class="w-11 h-11 rounded-2xl bg-[#D31F83]/10 text-[#D31F83] flex items-center justify-center text-xl shrink-0">
+                  <i class="${escapeHtml(track.icon)}" aria-hidden="true"></i>
+                </div>
+                <div>
+                  <h3 class="font-grotesque text-2xl font-800 text-[var(--text-primary)] m-0">
+                    ${escapeHtml(track.name)}
+                  </h3>
+                  <p class="font-sans text-xs text-[var(--text-muted)] m-0 mt-0.5">
+                    ${escapeHtml(track.description || '')}
+                  </p>
+                </div>
+              </div>
+
+              <div class="flex flex-col sm:items-end gap-1.5 shrink-0">
+                <div class="flex items-center gap-2">
+                  <span class="font-grotesque text-lg font-800 text-[#D31F83]">
+                    ${track.completedCount} / ${track.totalCount} Topics
+                  </span>
+                  <span class="px-2 py-0.5 rounded-full bg-[#D31F83]/10 text-[#D31F83] text-xs font-bold font-grotesque">
+                    ${track.progressPercent}%
+                  </span>
+                </div>
+                <div class="w-36 progress-bar-track">
+                  <div class="progress-bar-fill" style="width: ${track.progressPercent}%;"></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Subsets Container -->
+            <div class="space-y-4">
+              ${subsetsHtml}
+            </div>
+          </div>
+        `;
+      });
+
+      container.innerHTML = html;
+    }
+
+    function escapeHtml(str) {
+      if (str === null || str === undefined) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    // Expose functions globally for onclick bindings
+    window.switchTab = switchTab;
+    window.toggleTopicCompletion = toggleTopicCompletion;
+    window.setTrackFilter = setTrackFilter;
+    window.openProfileSettingsModal = openProfileSettingsModal;
+    window.openChangePasswordModal = openChangePasswordModal;
+    window.closeModal = closeModal;
+    window.handleLogout = handleLogout;
+    window.toggleMobileSidebar = toggleMobileSidebar;
+    window.toggleProfileDropdown = toggleProfileDropdown;
+    window.handlePasswordChangeSubmit = handlePasswordChangeSubmit;
+
+    /* ──────────────────────────────────────────────
+       POPULATE MENTOR INFO
+    ────────────────────────────────────────────── */
+    function populateMentorInfo() {
+      const name    = currentUser.name || 'Mentor';
+      const userId  = currentUser.userId || 'MEN-001';
+      const email   = currentUser.email || 'mentor@college.edu';
+      const college = currentUser.college || '';
+      const initial = (name.trim().charAt(0) || 'M').toUpperCase();
+
+      const sAvatar = document.getElementById('sidebarUserAvatar');
+      const sName   = document.getElementById('sidebarUserName');
+      const hAvatar = document.getElementById('headerAvatar');
+      const hName   = document.getElementById('headerUserName');
+      const hId     = document.getElementById('headerUserId');
+      const dName   = document.getElementById('dropdownName');
+      const dEmail  = document.getElementById('dropdownEmail');
+
+      if (sAvatar) sAvatar.textContent = initial;
+      if (sName)   sName.textContent   = name;
+      if (hAvatar) hAvatar.textContent = initial;
+      if (hName)   hName.textContent   = name;
+      if (hId)     hId.textContent     = userId;
+      if (dName)   dName.textContent   = name;
+      if (dEmail)  dEmail.textContent  = email;
+
+      // Profile modal details
+      const mName    = document.getElementById('modalProfileName');
+      const mEmail   = document.getElementById('modalProfileEmail');
+      const mUserId  = document.getElementById('modalProfileUserId');
+      const mCollege = document.getElementById('modalProfileCollege');
+
+      if (mName)    mName.textContent    = name;
+      if (mEmail)   mEmail.textContent   = email;
+      if (mUserId)  mUserId.textContent  = userId;
+      if (mCollege) mCollege.textContent = college || 'Not specified';
+    }
+
+    /* ──────────────────────────────────────────────
+       FILE STORAGE ABSTRACTION (IndexedDB + Disk Layer)
+    ────────────────────────────────────────────── */
+    const RizzFileStore = {
+      dbPromise: null,
+      init: function () {
+        if (!this.dbPromise) {
+          this.dbPromise = new Promise(function (resolve) {
+            if (!window.indexedDB) {
+              resolve(null);
+              return;
+            }
+            try {
+              var req = indexedDB.open('rizz_filestore_db', 1);
+              req.onupgradeneeded = function (e) {
+                var db = e.target.result;
+                if (!db.objectStoreNames.contains('files')) {
+                  db.createObjectStore('files', { keyPath: 'key' });
+                }
+              };
+              req.onsuccess = function () { resolve(req.result); };
+              req.onerror = function () { resolve(null); };
+            } catch (err) {
+              resolve(null);
+            }
+          });
+        }
+        return this.dbPromise;
+      },
+      blobToBase64: function (blob) {
+        return new Promise(function (resolve, reject) {
+          var reader = new FileReader();
+          reader.onloadend = function () {
+            var dataUrl = reader.result;
+            var base64 = (dataUrl && typeof dataUrl === 'string') ? dataUrl.split(',')[1] : '';
+            resolve(base64 || '');
+          };
+          reader.onerror = reject;
+          reader.readAsDataURL(blob);
+        });
+      },
+      saveFile: async function (key, blobOrFile, meta) {
+        if (!key || !blobOrFile) return false;
+        meta = meta || {};
+        var fileName = meta.name || blobOrFile.name || key;
+        var fileType = meta.type || blobOrFile.type || 'application/octet-stream';
+        var fileSize = meta.size || blobOrFile.size || 0;
+
+        var idbOk = false;
+        var db = await this.init();
+        if (db) {
+          idbOk = await new Promise(function (resolve) {
+            try {
+              var tx = db.transaction('files', 'readwrite');
+              var store = tx.objectStore('files');
+              store.put({
+                key: key,
+                blob: blobOrFile,
+                name: fileName,
+                type: fileType,
+                size: fileSize,
+                uploadedAt: new Date().toISOString()
+              });
+              tx.oncomplete = function () { resolve(true); };
+              tx.onerror = function () { resolve(false); };
+            } catch (e) {
+              resolve(false);
+            }
+          });
+        } else {
+          window._rizzMemoryFiles = window._rizzMemoryFiles || {};
+          window._rizzMemoryFiles[key] = { blob: blobOrFile, meta: meta };
+          idbOk = true;
+        }
+
+        try {
+          var base64 = await this.blobToBase64(blobOrFile);
+          await fetch(getBackendApiUrl('/api/upload'), {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              key: key,
+              name: fileName,
+              type: fileType,
+              size: fileSize,
+              data: base64
+            })
+          });
+        } catch (serverErr) {
+          console.warn('Server storage sync notice:', serverErr);
+        }
+
+        return idbOk;
+      },
+      getFile: async function (key) {
+        if (!key) return null;
+        var db = await this.init();
+        if (db) {
+          var idbBlob = await new Promise(function (resolve) {
+            try {
+              var tx = db.transaction('files', 'readonly');
+              var store = tx.objectStore('files');
+              var req = store.get(key);
+              req.onsuccess = function () {
+                if (req.result && req.result.blob) resolve(req.result.blob);
+                else resolve(null);
+              };
+              req.onerror = function () { resolve(null); };
+            } catch (e) {
+              resolve(null);
+            }
+          });
+          if (idbBlob) return idbBlob;
+        } else if (window._rizzMemoryFiles && window._rizzMemoryFiles[key]) {
+          return window._rizzMemoryFiles[key].blob;
+        }
+
+        try {
+          var res = await fetch(getBackendApiUrl('/api/files/' + encodeURIComponent(key)));
+          if (res.ok) {
+            var serverBlob = await res.blob();
+            if (db) {
+              try {
+                var tx2 = db.transaction('files', 'readwrite');
+                tx2.objectStore('files').put({
+                  key: key,
+                  blob: serverBlob,
+                  name: key,
+                  type: serverBlob.type,
+                  size: serverBlob.size,
+                  uploadedAt: new Date().toISOString()
+                });
+              } catch (e) {}
+            }
+            return serverBlob;
+          }
+        } catch (e) {}
+
+        return null;
+      },
+      hasFile: async function (key) {
+        if (!key) return false;
+        var blob = await this.getFile(key);
+        return !!blob;
+      },
+      getFileUrl: async function (key) {
+        var blob = await this.getFile(key);
+        if (!blob) return null;
+        return URL.createObjectURL(blob);
+      },
+      downloadFile: async function (key, defaultFileName) {
+        var blob = await this.getFile(key);
+        if (!blob) {
+          var sampleContent = 'RIZZ Practical Assessment Deliverable Payload: ' + (defaultFileName || 'file');
+          blob = new Blob([sampleContent], { type: 'application/octet-stream' });
+        }
+        var url = URL.createObjectURL(blob);
+        var a = document.createElement('a');
+        a.href = url;
+        a.download = defaultFileName || 'download';
+        document.body.appendChild(a);
+        a.click();
+        setTimeout(function () {
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+        }, 120);
+      },
+      deleteFile: async function (key) {
+        if (!key) return true;
+        if (window._rizzMemoryFiles && window._rizzMemoryFiles[key]) {
+          delete window._rizzMemoryFiles[key];
+        }
+        var db = await this.init();
+        if (db) {
+          await new Promise(function (resolve) {
+            try {
+              var tx = db.transaction('files', 'readwrite');
+              var store = tx.objectStore('files');
+              var req = store.delete(key);
+              req.onsuccess = function () { resolve(true); };
+              req.onerror = function () { resolve(false); };
+            } catch (e) {
+              resolve(false);
+            }
+          });
+        }
+        try {
+          await fetch(getBackendApiUrl('/api/files/' + encodeURIComponent(key)), { method: 'DELETE' });
+        } catch (e) {}
+        return true;
+      }
+    };
+    window.RizzFileStore = RizzFileStore;
+
+    /* ──────────────────────────────────────────────
+       MENTOR ASSESSMENT REVIEW ENGINE
+    ────────────────────────────────────────────── */
+    const LS_ASSESSMENTS = 'rizz_assessments';
+    const LS_ASSESSMENT_ATTEMPTS = 'rizz_assessment_attempts';
+
+    function loadAssessmentAttempts() {
+      try {
+        var raw = localStorage.getItem(LS_ASSESSMENT_ATTEMPTS);
+        return raw ? JSON.parse(raw) : {};
+      } catch (e) {
+        console.error('Error loading assessment attempts:', e);
+        return {};
+      }
+    }
+
+    function saveAssessmentAttempts(data) {
+      try {
+        localStorage.setItem(LS_ASSESSMENT_ATTEMPTS, JSON.stringify(data));
+      } catch (e) {
+        console.error('Error saving assessment attempts:', e);
+      }
+      try {
+        fetch(getBackendApiUrl('/api/assessment/attempts'), {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ attemptsMap: data })
+        }).catch(function () {});
+      } catch (e) {}
+    }
+
+    let hasInitializedMentorFirebaseAssessmentAttempts = false;
+    function initMentorFirebaseAssessmentAttemptsListener() {
+      if (hasInitializedMentorFirebaseAssessmentAttempts || !window.RizzDB || typeof window.RizzDB.onAssessmentAttemptsChange !== 'function') return;
+      hasInitializedMentorFirebaseAssessmentAttempts = true;
+      window.RizzDB.onAssessmentAttemptsChange(function (asmVal) {
+        if (!asmVal || typeof asmVal !== 'object') return;
+        try {
+          const fresh = JSON.stringify(asmVal);
+          const prev = localStorage.getItem(LS_ASSESSMENT_ATTEMPTS) || '{}';
+          if (prev !== fresh) {
+            localStorage.setItem(LS_ASSESSMENT_ATTEMPTS, fresh);
+            renderMentorAssessmentReviewView();
+          }
+        } catch (e) {}
+      });
+    }
+
+    let activeMentorReviewAttempt = null;
+
+    function renderMentorAssessmentReviewView() {
+      initMentorFirebaseAssessmentAttemptsListener();
+      var attemptsMap = loadAssessmentAttempts();
+      var mentorCollege = (currentUser.college || '').trim();
+      var mentorUserId = currentUser.userId || '';
+
+      /* 1. Load assessment config to check reviewer assignments */
+      var asmCfg = {};
+      try {
+        var rawCfg = localStorage.getItem(LS_ASSESSMENTS);
+        asmCfg = rawCfg ? JSON.parse(rawCfg) : {};
+      } catch (e) { asmCfg = {}; }
+
+      /* 2. Determine which assessmentIds this mentor is the designated reviewer for.
+            If assessmentReviewerUserId is set on a subset config, use strict reviewer matching.
+            If not set (legacy / unassigned), fall through to track-based filtering. */
+      var reviewerAssignedKeys = []; /* asmKeys where this mentor IS the reviewer */
+      var reviewerControlledKeys = []; /* asmKeys that have ANY reviewer assigned */
+      Object.keys(asmCfg).forEach(function (k) {
+        var cfg = asmCfg[k];
+        if (cfg && cfg.assessmentReviewerUserId) {
+          reviewerControlledKeys.push(k);
+          if (cfg.assessmentReviewerUserId === mentorUserId) {
+            reviewerAssignedKeys.push(k);
+          }
+        }
+      });
+      var hasAnyReviewerAssignments = reviewerControlledKeys.length > 0;
+
+      /* 3. Check mentor workshop track assignments (legacy fallback) */
+      var mentorHierarchy = getMentorAssignedHierarchy();
+      var assignedTrackIds = (mentorHierarchy.assignedTracks || []).map(function (tr) { return tr.id.toLowerCase(); });
+      var hasTrackRestrictions = mentorHierarchy.totalAssigned > 0;
+
+      var tbody = document.getElementById('mentorAsmTbody');
+      var emptyState = document.getElementById('mentorAsmEmptyState');
+      var tableContainer = document.getElementById('mentorAsmTableContainer');
+      var badge = document.getElementById('mentorSubmittedCountBadge');
+
+      var allAttempts = [];
+      Object.values(attemptsMap).forEach(function (rec) {
+        (rec.attempts || []).forEach(function (att) {
+          if (att.status === 'Submitted' || att.status === 'Finalized' || att.status === 'Published') {
+            var asmKey = att.assessmentId || '';
+            if (hasAnyReviewerAssignments) {
+              /* Reviewer-based mode: subset has a reviewer assigned */
+              if (reviewerControlledKeys.indexOf(asmKey) !== -1) {
+                /* This subset has a designated reviewer — only show if we are that reviewer */
+                if (reviewerAssignedKeys.indexOf(asmKey) === -1) return;
+              } else {
+                /* This subset has no reviewer set — fall back to track-based filtering */
+                if (hasTrackRestrictions) {
+                  var trKey = asmKey.startsWith('asm_prod_') ? 'production' : (asmKey.startsWith('asm_strat_') ? 'strategy' : (asmKey.startsWith('asm_tech_') ? 'tech' : ''));
+                  if (trKey && assignedTrackIds.indexOf(trKey) === -1) return;
+                }
+              }
+            } else {
+              /* No reviewer system in use yet — pure track-based filtering */
+              if (hasTrackRestrictions) {
+                var trKey2 = asmKey.startsWith('asm_prod_') ? 'production' : (asmKey.startsWith('asm_strat_') ? 'strategy' : (asmKey.startsWith('asm_tech_') ? 'tech' : ''));
+                if (trKey2 && assignedTrackIds.indexOf(trKey2) === -1) return;
+              }
+            }
+            allAttempts.push(att);
+          }
+        });
+      });
+
+      /* 4. Dynamic College Filter */
+      var collegeSelect = document.getElementById('filterMentorCollege');
+      var selectedCollege = collegeSelect ? collegeSelect.value : (mentorCollege || 'all');
+      if (collegeSelect) {
+        var colleges = new Set();
+        if (mentorCollege) colleges.add(mentorCollege);
+        allAttempts.forEach(function (att) { if (att.college) colleges.add(att.college.trim()); });
+
+        var optsHtml = '<option value="all">All Assigned Colleges</option>';
+        Array.from(colleges).sort().forEach(function (col) {
+          optsHtml += `<option value="${escapeHtml(col)}"${col === selectedCollege ? ' selected' : ''}>${escapeHtml(col)}</option>`;
+        });
+        collegeSelect.innerHTML = optsHtml;
+      }
+
+      /* 5. Filter attempts by selected college */
+      var filtered = allAttempts.filter(function (att) {
+        if (selectedCollege !== 'all' && (att.college || '').trim() !== selectedCollege) return false;
+        return true;
+      });
+
+      /* 6. Counter Badge: X Submitted • Y Pending */
+      var submittedCount = filtered.filter(function (a) {
+        return a.evaluation && (a.evaluation.mentorScore !== null && a.evaluation.mentorScore !== undefined);
+      }).length;
+      var pendingCount = filtered.length - submittedCount;
+
+      if (badge) {
+        badge.textContent = submittedCount + ' Submitted • ' + pendingCount + ' Pending';
+      }
+
+      /* 7. Render Table (Strictly Privacy Safe: NO student names) */
+      if (!filtered.length) {
+        if (tbody) tbody.innerHTML = '';
+        if (tableContainer) tableContainer.classList.add('hidden');
+        if (emptyState) {
+          /* Distinguish between 'not assigned as reviewer' vs 'no submissions yet' */
+          var noSubsetsAssigned = hasAnyReviewerAssignments && reviewerAssignedKeys.length === 0;
+          var emptyTitle = noSubsetsAssigned
+            ? 'No Subsets Assigned for Review'
+            : 'No Assessment Submissions to Review';
+          var emptyDesc = noSubsetsAssigned
+            ? 'You have not been designated as an Assessment Reviewer for any subset. Contact the Admin to be assigned.'
+            : 'Submitted student practical assessments will appear here once students in your assigned subset complete their submission.';
+          emptyState.innerHTML = `
+            <div class="w-12 h-12 rounded-xl bg-[#D31F83]/10 text-[#D31F83] flex items-center justify-center text-xl mx-auto mb-3">
+              <i class="fa-solid fa-award"></i>
+            </div>
+            <h3 class="font-grotesque text-lg font-800 text-[var(--text-primary)] m-0">
+              ${escapeHtml(emptyTitle)}
+            </h3>
+            <p class="font-sans text-sm text-[var(--text-muted)] max-w-md mx-auto mt-1 mb-0">
+              ${escapeHtml(emptyDesc)}
+            </p>
+          `;
+          emptyState.classList.remove('hidden');
+        }
+        return;
+      }
+
+      if (tableContainer) tableContainer.classList.remove('hidden');
+      if (emptyState) emptyState.classList.add('hidden');
+
+      var ASM_NAMES = {
+        asm_prod_designing:          'Designing',
+        asm_prod_videoediting:       'Video Editing',
+        asm_prod_cinematography:     'Cinematography',
+        asm_strat_contentwriting:    'Content Writing',
+        asm_strat_marketingstrategy: 'Marketing Strategy',
+        asm_strat_socialmedia:       'Social Media Management',
+        asm_strat_perfmarketing:     'Performance Marketing',
+        asm_tech_webdev:             'Website Development',
+        asm_tech_seo:                'SEO, AEO & GEO (Content-Led)',
+        asm_tech_ai:                 'AI & Automation'
+      };
+
+      var rowsHtml = '';
+      filtered.forEach(function (att) {
+        var studentId = att.studentId || '—';
+        var college = att.college || '—';
+        var mentorScore = (att.evaluation && att.evaluation.mentorScore !== null && att.evaluation.mentorScore !== undefined) ? att.evaluation.mentorScore : '—';
+        var asmName = ASM_NAMES[att.assessmentId] || att.assessmentId || 'Assessment';
+
+        var statusBadge = '';
+        if (att.status === 'Published') {
+          statusBadge = '<span class="category-pill text-emerald-600 border-emerald-500/30 bg-emerald-500/10 font-bold">Published</span>';
+        } else if (att.evaluation && att.evaluation.mentorStatus === 'Published') {
+          statusBadge = '<span class="category-pill text-indigo-600 border-indigo-500/30 bg-indigo-500/10 font-bold">Published to Admin</span>';
+        } else if (att.evaluation && att.evaluation.mentorScore !== null && att.evaluation.mentorScore !== undefined) {
+          statusBadge = '<span class="category-pill text-emerald-600 border-emerald-500/30 bg-emerald-500/10 font-bold">Evaluated (Draft)</span>';
+        } else {
+          statusBadge = '<span class="category-pill text-[#D31F83] border-[#D31F83]/30 bg-[#D31F83]/10 font-bold">Pending Review</span>';
+        }
+
+        rowsHtml += `
+          <tr class="hover:bg-[var(--bg-app)] transition-colors">
+            <td class="py-3 px-4 font-grotesque font-bold text-xs text-[var(--text-primary)]">${escapeHtml(studentId)}</td>
+            <td class="py-3 px-4 font-sans text-xs text-[var(--text-muted)]">${escapeHtml(college)}</td>
+            <td class="py-3 px-4 font-sans text-xs font-semibold text-[#D31F83]">${escapeHtml(asmName)}</td>
+            <td class="py-3 px-4 font-grotesque font-bold text-sm text-[#EDA233]">${mentorScore !== '—' ? mentorScore + ' / 100' : '—'}</td>
+            <td class="py-3 px-4">${statusBadge}</td>
+            <td class="py-3 px-4 text-right">
+              <button
+                type="button"
+                class="btn-secondary text-xs py-1 px-3 hover:border-[#D31F83] hover:text-[#D31F83]"
+                onclick="openMentorAssessmentModal('${escapeHtml(studentId)}', '${escapeHtml(att.attemptId)}')"
+              >
+                <i class="fa-solid fa-pen-to-square mr-1"></i> ${mentorScore !== '—' ? 'Edit' : 'Review'}
+              </button>
+            </td>
+          </tr>
+        `;
+      });
+
+      if (tbody) tbody.innerHTML = rowsHtml;
+    }
+    window.renderMentorAssessmentReviewView = renderMentorAssessmentReviewView;
+
+    async function openMentorAssessmentModal(studentId, attemptId) {
+      var attemptsMap = loadAssessmentAttempts();
+      var sAttempts = attemptsMap[studentId];
+      if (!sAttempts || !sAttempts.attempts) return;
+      var att = sAttempts.attempts.find(function (a) { return a.attemptId === attemptId; });
+      if (!att) return;
+
+      activeMentorReviewAttempt = att;
+
+      document.getElementById('mentorEvalStudentId').value = studentId;
+      document.getElementById('mentorEvalAttemptId').value = attemptId;
+      document.getElementById('mentorEvalStudentIdDisp').textContent = studentId;
+      document.getElementById('mentorEvalCollegeDisp').textContent = att.college || '\u2014';
+      document.getElementById('mentorEvalAttemptDisp').textContent = '#' + (att.attemptNumber || 1);
+
+      /* Build dynamic deliverables grid */
+      var sub = att.submissions || {};
+      var MENTOR_ASM_DELIVERABLES = {
+        asm_prod_designing:          ['finalPng','sourceZip','explanationVideo'],
+        asm_prod_videoediting:       ['finalVideo','sourceZip','selfVideo'],
+        asm_prod_cinematography:     ['sourceZip','selfVideo'],
+        asm_strat_contentwriting:    ['finalPdf'],
+        asm_strat_marketingstrategy: ['finalPdf','selfVideo'],
+        asm_strat_socialmedia:       ['finalPdf','sourceZip','selfVideo'],
+        asm_strat_perfmarketing:     ['finalPdf','sourceZip','selfVideo'],
+        asm_tech_webdev:             ['hostingLink','sourceZip','selfVideo'],
+        asm_tech_seo:                ['finalPdf','sourceZip','selfVideo'],
+        asm_tech_ai:                 ['finalPdf','sourceZip','selfVideo']
+      };
+      var delivs = MENTOR_ASM_DELIVERABLES[att.assessmentId] || Object.keys(sub).filter(function(k) { return sub[k]; });
+      var gridEl = document.getElementById('mentorEvalDeliverablesGrid');
+
+      if (gridEl) {
+        var cardsHtml = '';
+        for (var di = 0; di < delivs.length; di++) {
+          var d = delivs[di];
+          var fileObj = sub[d];
+          if (!fileObj) continue;
+          if (d === 'hostingLink') {
+            var hostUrl = fileObj.url || (typeof fileObj === 'string' ? fileObj : '');
+            cardsHtml += `<div class="p-3 rounded-xl bg-[var(--bg-app)] border border-[var(--border-subtle)] flex flex-col justify-between space-y-2">
+              <div>
+                <div class="flex items-center justify-between">
+                  <span class="font-grotesque font-bold text-xs uppercase text-[var(--text-primary)]"><i class="fa-solid fa-link text-[#EDA233] mr-1"></i> Hosting Link</span>
+                  <span class="text-[10px] text-emerald-500 font-bold">Provided</span>
+                </div>
+                <div class="mt-2 aspect-video rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-card)] flex flex-col items-center justify-center text-[var(--text-muted)] p-2">
+                  <i class="fa-solid fa-globe text-2xl text-[#EDA233] mb-1"></i>
+                  <span class="text-[11px] font-mono text-center truncate max-w-full font-medium text-[var(--text-primary)]">${escapeHtml(hostUrl || 'https://...')}</span>
+                  <span class="text-[10px] text-[var(--text-muted)]">Live Project URL</span>
+                </div>
+              </div>
+              <a href="${escapeHtml(hostUrl)}" target="_blank" rel="noopener noreferrer" class="btn-secondary text-xs w-full py-1 justify-center no-underline inline-flex items-center gap-1">
+                <i class="fa-solid fa-arrow-up-right-from-square text-[0.7rem]"></i> Open Hosting Link
+              </a>
+            </div>`;
+          } else if (d === 'finalPng') {
+            var pngUrl = await RizzFileStore.getFileUrl(fileObj.fileKey);
+            cardsHtml += `<div class="p-3 rounded-xl bg-[var(--bg-app)] border border-[var(--border-subtle)] flex flex-col justify-between space-y-2">
+              <div>
+                <div class="flex items-center justify-between">
+                  <span class="font-grotesque font-bold text-xs uppercase text-[var(--text-primary)]"><i class="fa-solid fa-image text-[#D31F83] mr-1"></i> Final PNG</span>
+                  <span class="text-[10px] text-emerald-500 font-bold">Uploaded</span>
+                </div>
+                <div class="mt-2 aspect-video rounded-lg overflow-hidden border border-[var(--border-subtle)] bg-[var(--bg-card)] flex items-center justify-center cursor-pointer" onclick="openMentorFullPngPreview()">
+                  ${pngUrl ? `<img src="${pngUrl}" alt="Final Design" class="w-full h-full object-cover" />` : '<div class="text-xs text-[var(--text-muted)] flex flex-col items-center"><i class="fa-regular fa-image text-xl mb-1"></i><span>No preview</span></div>'}
+                </div>
+                <div class="text-[11px] text-[var(--text-muted)] font-sans mt-1 truncate">${fileObj.fileName || 'final_design.png'}</div>
+              </div>
+              <button type="button" class="btn-secondary text-xs w-full py-1 justify-center" onclick="downloadMentorEvaluatedFile('png')"><i class="fa-solid fa-download mr-1"></i> Download PNG</button>
+            </div>`;
+          } else if (d === 'finalPdf') {
+            cardsHtml += `<div class="p-3 rounded-xl bg-[var(--bg-app)] border border-[var(--border-subtle)] flex flex-col justify-between space-y-2">
+              <div>
+                <div class="flex items-center justify-between">
+                  <span class="font-grotesque font-bold text-xs uppercase text-[var(--text-primary)]"><i class="fa-solid fa-file-pdf text-[#D31F83] mr-1"></i> Final PDF</span>
+                  <span class="text-[10px] text-emerald-500 font-bold">Uploaded</span>
+                </div>
+                <div class="mt-2 aspect-video rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-app)] flex flex-col items-center justify-center text-[var(--text-muted)] p-2">
+                  <i class="fa-solid fa-file-pdf text-3xl text-[#D31F83] mb-2"></i>
+                  <span class="text-[11px] font-sans text-center truncate max-w-full font-bold text-[var(--text-primary)]">${fileObj.fileName || 'submission.pdf'}</span>
+                  <span class="text-[10px]">${fileObj.fileSize ? ((Math.round(fileObj.fileSize / 1024 / 102.4) / 10)) + ' MB' : 'PDF Document'}</span>
+                </div>
+              </div>
+              <button type="button" class="btn-secondary text-xs w-full py-1 justify-center" onclick="downloadMentorEvaluatedFile('pdf')"><i class="fa-solid fa-download mr-1"></i> Download PDF</button>
+            </div>`;
+          } else if (d === 'sourceZip') {
+            cardsHtml += `<div class="p-3 rounded-xl bg-[var(--bg-app)] border border-[var(--border-subtle)] flex flex-col justify-between space-y-2">
+              <div>
+                <div class="flex items-center justify-between">
+                  <span class="font-grotesque font-bold text-xs uppercase text-[var(--text-primary)]"><i class="fa-solid fa-file-zipper text-[#EDA233] mr-1"></i> Source ZIP</span>
+                  <span class="text-[10px] text-emerald-500 font-bold">Uploaded</span>
+                </div>
+                <div class="mt-2 aspect-video rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-card)] flex flex-col items-center justify-center text-[var(--text-muted)] p-2">
+                  <i class="fa-solid fa-file-zipper text-2xl text-[#EDA233] mb-1"></i>
+                  <span class="text-[11px] font-sans text-center truncate max-w-full">${fileObj.fileName || 'source_files.zip'}</span>
+                  <span class="text-[10px]">${fileObj.fileSize ? ((Math.round(fileObj.fileSize / 1024 / 102.4) / 10)) + ' MB' : ''}</span>
+                </div>
+              </div>
+              <button type="button" class="btn-secondary text-xs w-full py-1 justify-center" onclick="downloadMentorEvaluatedFile('zip')"><i class="fa-solid fa-download mr-1"></i> Download ZIP</button>
+            </div>`;
+          } else if (d === 'explanationVideo' || d === 'selfVideo' || d === 'finalVideo') {
+            var vidDlKey = d === 'explanationVideo' ? 'video' : (d === 'selfVideo' ? 'selfvideo' : 'finalvideo');
+            var vidUrl = await RizzFileStore.getFileUrl(fileObj.fileKey);
+            var durBadge = fileObj.durationSeconds ? fileObj.durationSeconds + 's \u2713 Valid' : '\u2264 120s';
+            var vidLabel = d === 'explanationVideo' ? 'Explanation Video' : (d === 'selfVideo' ? 'Self Video' : 'Final Video');
+            cardsHtml += `<div class="p-3 rounded-xl bg-[var(--bg-app)] border border-[var(--border-subtle)] flex flex-col justify-between space-y-2">
+              <div>
+                <div class="flex items-center justify-between">
+                  <span class="font-grotesque font-bold text-xs uppercase text-[var(--text-primary)]"><i class="fa-solid fa-video text-sky-500 mr-1"></i> ${vidLabel}</span>
+                  <span class="text-[10px] text-emerald-500 font-bold">${durBadge}</span>
+                </div>
+                <div class="mt-2 aspect-video rounded-lg overflow-hidden border border-[var(--border-subtle)] bg-black flex items-center justify-center">
+                  ${vidUrl ? `<video src="${vidUrl}" controls class="w-full h-full object-contain"></video>` : `<div class="text-xs text-white/70 flex flex-col items-center p-2"><i class="fa-solid fa-play text-xl mb-1"></i><span class="text-[10px] text-center">${fileObj.fileName || 'video.mp4'}</span></div>`}
+                </div>
+              </div>
+              <button type="button" class="btn-secondary text-xs w-full py-1 justify-center" onclick="downloadMentorEvaluatedFile('${vidDlKey}')"><i class="fa-solid fa-download mr-1"></i> Download Video</button>
+            </div>`;
+          }
+        }
+        gridEl.innerHTML = cardsHtml || '<p class="text-xs text-[var(--text-muted)] italic col-span-3">No deliverable files found in this submission.</p>';
+      }
+
+      /* Pre-fill Mentor Inputs */
+      var ev = att.evaluation || {};
+      document.getElementById('inputMentorScore').value = (ev.mentorScore !== undefined && ev.mentorScore !== null) ? ev.mentorScore : '';
+      document.getElementById('inputMentorRemarks').value = ev.mentorRemarks || '';
+      document.getElementById('mentorScoreError').classList.add('hidden');
+
+      openModal('modalMentorReviewAssessment');
+    }
+    window.openMentorAssessmentModal = openMentorAssessmentModal;
+
+    function handleMentorAssessmentSubmit(e) {
+      e.preventDefault();
+      var studentId = document.getElementById('mentorEvalStudentId').value;
+      var attemptId = document.getElementById('mentorEvalAttemptId').value;
+      var scoreRaw = document.getElementById('inputMentorScore').value.trim();
+      var remarks = document.getElementById('inputMentorRemarks').value.trim();
+      var score = parseFloat(scoreRaw);
+
+      var errEl = document.getElementById('mentorScoreError');
+      if (isNaN(score) || score < 0 || score > 100) {
+        errEl.textContent = 'Please enter a valid mentor score between 0 and 100.';
+        errEl.classList.remove('hidden');
+        return;
+      }
+      errEl.classList.add('hidden');
+
+      var attemptsMap = loadAssessmentAttempts();
+      var sAttempts = attemptsMap[studentId];
+      if (!sAttempts || !sAttempts.attempts) return;
+      var att = sAttempts.attempts.find(function (a) { return a.attemptId === attemptId; });
+      if (!att) return;
+
+      if (!att.evaluation) att.evaluation = {};
+      att.evaluation.mentorScore = score;
+      att.evaluation.mentorRemarks = remarks;
+      att.evaluation.mentorUserId = currentUser.userId || 'MEN-001';
+      att.evaluation.mentorEvaluatedAt = new Date().toISOString();
+      att.evaluation.mentorStatus = 'Submitted';
+
+      saveAssessmentAttempts(attemptsMap);
+      closeModal('modalMentorReviewAssessment');
+      showToast('Mentor evaluation for ' + studentId + ' saved successfully with score ' + score + '/100.');
+      renderMentorAssessmentReviewView();
+    }
+    window.handleMentorAssessmentSubmit = handleMentorAssessmentSubmit;
+
+    function bulkPublishMentorEvaluations() {
+      var attemptsMap = loadAssessmentAttempts();
+      var submittedCount = 0;
+      var pendingCount = 0;
+
+      Object.keys(attemptsMap).forEach(function (sId) {
+        (attemptsMap[sId].attempts || []).forEach(function (att) {
+          if (att.status === 'Submitted' || att.status === 'Finalized' || att.status === 'Published') {
+            if (att.evaluation && att.evaluation.mentorScore !== null && att.evaluation.mentorScore !== undefined) {
+              submittedCount++;
+            } else {
+              pendingCount++;
+            }
+          }
+        });
+      });
+
+      if (submittedCount === 0) {
+        showToast('No submitted mentor evaluations found to publish. Complete evaluation for student attempts first.');
+        return;
+      }
+
+      var countEl = document.getElementById('mentorBulkPubCountText');
+      var pendingEl = document.getElementById('mentorBulkPubPendingText');
+      if (countEl) countEl.textContent = submittedCount;
+      if (pendingEl) pendingEl.textContent = pendingCount;
+
+      openModal('modalMentorBulkPublish');
+    }
+    window.bulkPublishMentorEvaluations = bulkPublishMentorEvaluations;
+
+    function confirmBulkPublishMentorEvaluations() {
+      var attemptsMap = loadAssessmentAttempts();
+      var count = 0;
+
+      Object.keys(attemptsMap).forEach(function (sId) {
+        (attemptsMap[sId].attempts || []).forEach(function (att) {
+          if (att.evaluation && att.evaluation.mentorScore !== null && att.evaluation.mentorScore !== undefined) {
+            att.evaluation.mentorStatus = 'Published';
+            att.evaluation.mentorPublishedAt = new Date().toISOString();
+            count++;
+          }
+        });
+      });
+
+      saveAssessmentAttempts(attemptsMap);
+      closeModal('modalMentorBulkPublish');
+      showToast('Successfully published ' + count + ' mentor evaluation' + (count === 1 ? '' : 's') + ' to Admin queue!');
+      renderMentorAssessmentReviewView();
+    }
+    window.confirmBulkPublishMentorEvaluations = confirmBulkPublishMentorEvaluations;
+
+    function openMentorFullPngPreview() {
+      var pngImg = document.getElementById('mentorEvalPngImg');
+      var fullImg = document.getElementById('mentorFullPreviewImageSrc');
+      if (pngImg && pngImg.src && !pngImg.classList.contains('hidden')) {
+        fullImg.src = pngImg.src;
+        openModal('modalMentorViewImageFull');
+      }
+    }
+    window.openMentorFullPngPreview = openMentorFullPngPreview;
+
+    function downloadMentorEvaluatedFile(type) {
+      if (!activeMentorReviewAttempt || !activeMentorReviewAttempt.submissions) {
+        showToast('Submission data unavailable.');
+        return;
+      }
+      var sub = activeMentorReviewAttempt.submissions;
+      if (type === 'png' && sub.finalPng) {
+        RizzFileStore.downloadFile(sub.finalPng.fileKey, sub.finalPng.fileName || 'final_design.png');
+      } else if (type === 'pdf' && sub.finalPdf) {
+        RizzFileStore.downloadFile(sub.finalPdf.fileKey, sub.finalPdf.fileName || 'submission.pdf');
+      } else if (type === 'zip' && sub.sourceZip) {
+        RizzFileStore.downloadFile(sub.sourceZip.fileKey, sub.sourceZip.fileName || 'source_files.zip');
+      } else if (type === 'video' && sub.explanationVideo) {
+        RizzFileStore.downloadFile(sub.explanationVideo.fileKey, sub.explanationVideo.fileName || 'walkthrough.mp4');
+      } else if (type === 'selfvideo' && sub.selfVideo) {
+        RizzFileStore.downloadFile(sub.selfVideo.fileKey, sub.selfVideo.fileName || 'self_video.mp4');
+      } else if (type === 'finalvideo' && sub.finalVideo) {
+        RizzFileStore.downloadFile(sub.finalVideo.fileKey, sub.finalVideo.fileName || 'final_video.mp4');
+      } else {
+        showToast('File data unavailable.');
+      }
+    }
+    window.downloadMentorEvaluatedFile = downloadMentorEvaluatedFile;
+
+    function openMentorFullPngPreview() {
+      var pngImg = document.getElementById('mentorEvalPngImg');
+      var fullImg = document.getElementById('mentorFullPreviewImageSrc');
+      if (pngImg && pngImg.src && !pngImg.classList.contains('hidden')) {
+        fullImg.src = pngImg.src;
+        openModal('modalMentorViewImageFull');
+      }
+    }
+    window.openMentorFullPngPreview = openMentorFullPngPreview;
+
+    function downloadMentorEvaluatedFile(type) {
+      if (!activeMentorReviewAttempt || !activeMentorReviewAttempt.submissions) {
+        showToast('Submission data unavailable.');
+        return;
+      }
+      var sub = activeMentorReviewAttempt.submissions;
+      if (type === 'png' && sub.finalPng) {
+        RizzFileStore.downloadFile(sub.finalPng.fileKey, sub.finalPng.fileName || 'final_design.png');
+      } else if (type === 'pdf' && sub.finalPdf) {
+        RizzFileStore.downloadFile(sub.finalPdf.fileKey, sub.finalPdf.fileName || 'submission.pdf');
+      } else if (type === 'zip' && sub.sourceZip) {
+        RizzFileStore.downloadFile(sub.sourceZip.fileKey, sub.sourceZip.fileName || 'source_files.zip');
+      } else if (type === 'video' && sub.explanationVideo) {
+        RizzFileStore.downloadFile(sub.explanationVideo.fileKey, sub.explanationVideo.fileName || 'walkthrough.mp4');
+      } else if (type === 'selfvideo' && sub.selfVideo) {
+        RizzFileStore.downloadFile(sub.selfVideo.fileKey, sub.selfVideo.fileName || 'self_video.mp4');
+      } else if (type === 'finalvideo' && sub.finalVideo) {
+        RizzFileStore.downloadFile(sub.finalVideo.fileKey, sub.finalVideo.fileName || 'final_video.mp4');
+      } else {
+        showToast('File data unavailable.');
+      }
+    }
+    window.downloadMentorEvaluatedFile = downloadMentorEvaluatedFile;
+
+    async function syncMentorDataWithServer() {
+      try {
+        const resp = await fetch(getBackendApiUrl('/api/sync/all'));
+        if (!resp.ok) return;
+        const data = await resp.json();
+
+        if (data.workshopCompletions && typeof data.workshopCompletions === 'object') {
+          localStorage.setItem(LS_COMPLETIONS, JSON.stringify(data.workshopCompletions));
+        }
+
+        if (data.assessmentAttempts && typeof data.assessmentAttempts === 'object') {
+          localStorage.setItem(LS_ASSESSMENT_ATTEMPTS, JSON.stringify(data.assessmentAttempts));
+        }
+
+        if (data.assessmentData && typeof data.assessmentData === 'object') {
+          localStorage.setItem(LS_ASSESSMENTS, JSON.stringify(data.assessmentData));
+        }
+
+        if (data.workshopData && typeof data.workshopData === 'object') {
+          localStorage.setItem(LS_WORKSHOPS, JSON.stringify(data.workshopData));
+        }
+
+        renderMentorHome();
+        renderMyWorkshops();
+        renderMentorAssessmentReviewView();
+      } catch (e) {
+        console.warn('Mentor data sync notice:', e);
+      }
+    }
+
+    /* ──────────────────────────────────────────────
+       INITIALIZATION
+    ────────────────────────────────────────────── */
+    document.addEventListener('DOMContentLoaded', function () {
+      populateMentorInfo();
+      RizzFileStore.init();
+
+      const savedTheme = localStorage.getItem(LS_THEME);
+      const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+      applyTheme(savedTheme || (prefersDark ? 'dark' : 'light'));
+
+      syncMentorDataWithServer();
+      renderMentorHome();
+      renderMyWorkshops();
+
+      setInterval(function () {
+        syncMentorDataWithServer();
+      }, 4000);
+
+      document.addEventListener('visibilitychange', function () {
+        if (document.visibilityState === 'visible') {
+          syncMentorDataWithServer();
+        }
+      });
+    });
+  </script>
+</body>
+</html>

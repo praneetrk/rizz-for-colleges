@@ -1,0 +1,869 @@
+<!DOCTYPE html>
+<html lang="en" class="">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>RIZZ for Colleges — Sign In</title>
+  <meta name="description" content="Sign in to RIZZ for Colleges — your campus placement and learning platform." />
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300;1,9..40,400&family=Darker+Grotesque:wght@400;500;600;700;800;900&family=Playfair+Display:ital,wght@1,400;1,500;1,600;1,700&display=swap"
+    rel="stylesheet"
+  />
+
+  <!-- Font Awesome -->
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+    integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W=="
+    crossorigin="anonymous"
+    referrerpolicy="no-referrer"
+  />
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Firebase App & Realtime Database SDKs (Compat v9) -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+  <!-- Firebase Project Configuration & Realtime Sync Layer -->
+  <script src="firebase-config.js"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans:      ['"DM Sans"',          'ui-sans-serif', 'system-ui'],
+            grotesque: ['"Darker Grotesque"',  'ui-sans-serif'],
+            playfair:  ['"Playfair Display"',  'ui-serif',      'Georgia'],
+          },
+          colors: {
+            magenta: {
+              DEFAULT: '#D31F83',
+              50:  '#fce8f3',
+              100: '#f9c5e1',
+              200: '#f38fca',
+              400: '#e04fab',
+              600: '#b8196f',
+              700: '#9a155d',
+            },
+            amber: {
+              brand: '#EDA233',
+            },
+          },
+        },
+      },
+    };
+  </script>
+
+  <!-- Immediate theme init — must run before body paints to avoid flash -->
+  <script>
+    (function () {
+      var saved = localStorage.getItem('rizz_theme');
+      var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+      if (saved === 'dark' || (!saved && prefersDark)) {
+        document.documentElement.classList.add('dark');
+      }
+    })();
+  </script>
+
+  <style>
+    /* =============================================
+       BASE TYPOGRAPHY
+    ============================================= */
+    body {
+      font-family: 'DM Sans', ui-sans-serif, system-ui;
+    }
+    .font-grotesque { font-family: 'Darker Grotesque', ui-sans-serif; }
+    .font-playfair  { font-family: 'Playfair Display', ui-serif, Georgia; font-style: italic; }
+
+    /* =============================================
+       LIGHT THEME  (default)
+    ============================================= */
+    :root {
+      --bg-page:      #F4F6F9;
+      --bg-card:      #FFFFFF;
+      --bg-input:     #F8FAFC;
+      --border-input: #E2E8F0;
+      --border-card:  #E9EDF2;
+      --text-primary: #0F172A;
+      --text-muted:   #64748B;
+      --text-label:   #334155;
+      --ring-focus:   rgba(211, 31, 131, 0.25);
+      --shadow-card:  0 4px 6px -1px rgba(15,23,42,0.06), 0 2px 4px -2px rgba(15,23,42,0.04);
+      --shadow-card-lg: 0 20px 40px -8px rgba(15,23,42,0.10), 0 8px 16px -4px rgba(15,23,42,0.06);
+    }
+
+    /* =============================================
+       DARK THEME
+    ============================================= */
+    .dark {
+      --bg-page:      #0B0F19;
+      --bg-card:      #131B2E;
+      --bg-input:     #0F172A;
+      --border-input: #1E293B;
+      --border-card:  #1E2D45;
+      --text-primary: #F1F5F9;
+      --text-muted:   #94A3B8;
+      --text-label:   #CBD5E1;
+      --ring-focus:   rgba(211, 31, 131, 0.35);
+      --shadow-card:  0 4px 6px -1px rgba(0,0,0,0.35), 0 2px 4px -2px rgba(0,0,0,0.25);
+      --shadow-card-lg: 0 20px 40px -8px rgba(0,0,0,0.50), 0 8px 16px -4px rgba(0,0,0,0.35);
+    }
+
+    /* =============================================
+       PAGE
+    ============================================= */
+    body {
+      background-color: var(--bg-page);
+      color: var(--text-primary);
+      min-height: 100vh;
+      transition: background-color 0.25s ease, color 0.25s ease;
+    }
+
+    /* =============================================
+       DECORATIVE BACKGROUND BLOBS
+       Soft, non-intrusive. Sky-blue tint as allowed.
+    ============================================= */
+    .blob {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(90px);
+      pointer-events: none;
+      z-index: 0;
+      opacity: 0;
+      transition: opacity 0.4s ease;
+    }
+    .blob-tl {
+      width: 480px; height: 480px;
+      top: -140px; left: -140px;
+      background: radial-gradient(circle, rgba(211,31,131,0.07) 0%, rgba(147,197,253,0.06) 60%, transparent 100%);
+    }
+    .blob-br {
+      width: 520px; height: 520px;
+      bottom: -160px; right: -160px;
+      background: radial-gradient(circle, rgba(237,162,51,0.06) 0%, rgba(147,197,253,0.05) 60%, transparent 100%);
+    }
+    body.ready .blob { opacity: 1; }
+
+    /* Dark theme blobs — slightly more visible */
+    .dark .blob-tl {
+      background: radial-gradient(circle, rgba(211,31,131,0.10) 0%, rgba(96,165,250,0.07) 60%, transparent 100%);
+    }
+    .dark .blob-br {
+      background: radial-gradient(circle, rgba(237,162,51,0.08) 0%, rgba(96,165,250,0.06) 60%, transparent 100%);
+    }
+
+    /* =============================================
+       CARD
+    ============================================= */
+    .login-card {
+      background-color: var(--bg-card);
+      border: 1px solid var(--border-card);
+      box-shadow: var(--shadow-card-lg);
+      transition: background-color 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+    }
+
+    /* =============================================
+       INPUT
+    ============================================= */
+    .form-input {
+      background-color: var(--bg-input);
+      border: 1.5px solid var(--border-input);
+      color: var(--text-primary);
+      font-family: 'DM Sans', ui-sans-serif;
+      font-size: 0.9375rem;
+      transition: border-color 0.18s ease, box-shadow 0.18s ease, background-color 0.25s ease;
+      outline: none;
+    }
+    .form-input::placeholder { color: var(--text-muted); }
+    .form-input:focus {
+      border-color: #D31F83;
+      box-shadow: 0 0 0 3px var(--ring-focus);
+    }
+
+    /* =============================================
+       SYSTEM MESSAGE BANNER
+    ============================================= */
+    .system-msg {
+      font-family: 'DM Sans', ui-sans-serif;
+      font-size: 0.8125rem;
+      border-radius: 0.625rem;
+      padding: 0.625rem 0.875rem;
+      display: flex;
+      align-items: flex-start;
+      gap: 0.5rem;
+      transition: opacity 0.2s ease;
+    }
+    .system-msg.error {
+      background-color: rgba(211,31,131,0.08);
+      border: 1px solid rgba(211,31,131,0.20);
+      color: #B01A6E;
+    }
+    .dark .system-msg.error {
+      background-color: rgba(211,31,131,0.12);
+      border-color: rgba(211,31,131,0.25);
+      color: #F472B6;
+    }
+    .system-msg.warn {
+      background-color: rgba(237,162,51,0.10);
+      border: 1px solid rgba(237,162,51,0.25);
+      color: #92650A;
+    }
+    .dark .system-msg.warn {
+      background-color: rgba(237,162,51,0.10);
+      border-color: rgba(237,162,51,0.25);
+      color: #FCD34D;
+    }
+    .system-msg.hidden { display: none; }
+
+    /* =============================================
+       PRIMARY BUTTON
+    ============================================= */
+    .btn-primary {
+      background-color: #D31F83;
+      color: #FFFFFF;
+      font-family: 'Darker Grotesque', ui-sans-serif;
+      font-weight: 700;
+      font-size: 1rem;
+      letter-spacing: 0.01em;
+      border: none;
+      cursor: pointer;
+      transition: background-color 0.18s ease, transform 0.12s ease, box-shadow 0.18s ease;
+    }
+    .btn-primary:hover:not(:disabled) {
+      background-color: #B8196F;
+      box-shadow: 0 4px 14px rgba(211,31,131,0.35);
+      transform: translateY(-1px);
+    }
+    .btn-primary:active:not(:disabled) {
+      background-color: #9A155D;
+      transform: translateY(0);
+      box-shadow: none;
+    }
+    .btn-primary:focus-visible {
+      outline: 2px solid #D31F83;
+      outline-offset: 3px;
+    }
+    .btn-primary:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    /* =============================================
+       ICON BUTTON (password toggle, theme toggle)
+    ============================================= */
+    .icon-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--text-muted);
+      transition: color 0.15s ease;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .icon-btn:hover  { color: #D31F83; }
+    .icon-btn:focus-visible {
+      outline: 2px solid #D31F83;
+      outline-offset: 2px;
+      border-radius: 0.25rem;
+    }
+
+    /* =============================================
+       THEME TOGGLE PILL
+    ============================================= */
+    .theme-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.375rem;
+      padding: 0.3125rem 0.75rem;
+      border-radius: 999px;
+      border: 1.5px solid var(--border-input);
+      background-color: var(--bg-card);
+      color: var(--text-muted);
+      font-family: 'DM Sans', ui-sans-serif;
+      font-size: 0.8125rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: border-color 0.18s ease, color 0.18s ease, background-color 0.25s ease;
+    }
+    .theme-pill:hover { border-color: #D31F83; color: #D31F83; }
+    .theme-pill:focus-visible {
+      outline: 2px solid #D31F83;
+      outline-offset: 2px;
+    }
+
+    /* =============================================
+       DIVIDER
+    ============================================= */
+    .divider {
+      border: none;
+      border-top: 1px solid var(--border-card);
+      margin: 0;
+      transition: border-color 0.25s ease;
+    }
+
+    /* =============================================
+       LOADING SPINNER (inside button)
+    ============================================= */
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .spinner {
+      width: 1rem; height: 1rem;
+      border: 2px solid rgba(255,255,255,0.4);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.65s linear infinite;
+      display: inline-block;
+      vertical-align: middle;
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- Decorative background blobs -->
+  <div class="blob blob-tl" aria-hidden="true"></div>
+  <div class="blob blob-br" aria-hidden="true"></div>
+
+  <!-- ============================================================
+       TOP-RIGHT: THEME TOGGLE
+  ============================================================ -->
+  <div class="fixed top-5 right-5 z-50">
+    <button
+      id="themeToggle"
+      type="button"
+      class="theme-pill"
+      aria-label="Toggle colour theme"
+    >
+      <i id="themeIcon" class="fa-solid fa-sun text-[0.75rem]" aria-hidden="true"></i>
+      <span id="themeLabel" class="font-grotesque font-600">Light</span>
+    </button>
+  </div>
+
+  <!-- ============================================================
+       MAIN LAYOUT
+  ============================================================ -->
+  <main
+    class="relative z-10 min-h-screen flex flex-col items-center justify-center px-4 py-12"
+    aria-label="Sign in to RIZZ for Colleges"
+  >
+
+    <!-- ── LOGIN CARD ── -->
+    <div class="login-card w-full max-w-[440px] rounded-[1.75rem] overflow-hidden">
+
+      <!-- ── CARD HEADER ── -->
+      <div class="px-8 pt-8 pb-6">
+
+        <!-- Logo -->
+        <div class="mb-7">
+          <img
+            id="brandLogo"
+            src="logo-light.png"
+            alt="RIZZ for Colleges"
+            class="h-11 w-auto object-contain"
+          />
+        </div>
+
+        <!-- Heading -->
+        <h1 class="font-grotesque text-[1.875rem] font-800 leading-tight" style="color: var(--text-primary);">
+          Welcome back
+        </h1>
+        <p class="font-sans mt-1 text-[0.9375rem]" style="color: var(--text-muted);">
+          Sign in to continue to your portal.
+        </p>
+      </div>
+
+      <hr class="divider" />
+
+      <!-- ── FORM ── -->
+      <form
+        id="loginForm"
+        class="px-8 pt-6 pb-8 space-y-5"
+        novalidate
+        autocomplete="off"
+      >
+
+        <!-- System / database message -->
+        <div
+          id="systemMsg"
+          class="system-msg hidden"
+          role="alert"
+          aria-live="polite"
+        >
+          <i class="fa-solid fa-circle-exclamation mt-0.5 shrink-0" aria-hidden="true"></i>
+          <span id="systemMsgText"></span>
+        </div>
+
+        <!-- Student ID -->
+        <div class="space-y-1.5">
+          <label
+            for="studentIdInput"
+            class="block font-grotesque text-[0.875rem] font-700"
+            style="color: var(--text-label);"
+          >
+            Student ID
+          </label>
+          <div class="relative">
+            <span
+              class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4"
+              aria-hidden="true"
+            >
+              <i class="fa-solid fa-id-card text-[0.9rem]" style="color: var(--text-muted);"></i>
+            </span>
+            <input
+              id="studentIdInput"
+              name="studentId"
+              type="text"
+              autocomplete="username"
+              required
+              placeholder="Enter your Student ID (e.g. STUD-001)"
+              class="form-input w-full rounded-xl pl-10 pr-4 py-3"
+              aria-required="true"
+              aria-describedby="studentIdError"
+            />
+          </div>
+          <p
+            id="studentIdError"
+            class="hidden font-sans text-[0.8125rem]"
+            style="color: #D31F83;"
+            role="alert"
+          ></p>
+        </div>
+
+        <!-- Password -->
+        <div class="space-y-1.5">
+          <label
+            for="passwordInput"
+            class="block font-grotesque text-[0.875rem] font-700"
+            style="color: var(--text-label);"
+          >
+            Password
+          </label>
+          <div class="relative">
+            <span
+              class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4"
+              aria-hidden="true"
+            >
+              <i class="fa-solid fa-lock text-[0.9rem]" style="color: var(--text-muted);"></i>
+            </span>
+            <input
+              id="passwordInput"
+              name="password"
+              type="password"
+              autocomplete="current-password"
+              required
+              placeholder="Enter your password"
+              class="form-input w-full rounded-xl pl-10 pr-12 py-3"
+              aria-required="true"
+              aria-describedby="passwordError"
+            />
+            <button
+              id="togglePassword"
+              type="button"
+              class="icon-btn absolute inset-y-0 right-0 px-4"
+              aria-label="Show password"
+              tabindex="0"
+            >
+              <i id="eyeIcon" class="fa-regular fa-eye text-[1rem]" aria-hidden="true"></i>
+            </button>
+          </div>
+          <p
+            id="passwordError"
+            class="hidden font-sans text-[0.8125rem]"
+            style="color: #D31F83;"
+            role="alert"
+          ></p>
+        </div>
+
+        <!-- Inline credential error -->
+        <div
+          id="credError"
+          class="system-msg error hidden"
+          role="alert"
+          aria-live="assertive"
+        >
+          <i class="fa-solid fa-circle-xmark mt-0.5 shrink-0" aria-hidden="true"></i>
+          <span>Invalid Student ID or Password. Please contact your administrator.</span>
+        </div>
+
+        <!-- Submit -->
+        <button
+          id="loginBtn"
+          type="submit"
+          class="btn-primary w-full rounded-xl py-3.5 mt-1"
+          disabled
+        >
+          <span id="loginBtnContent">Login</span>
+        </button>
+
+      </form>
+
+    </div>
+
+    <!-- Footer caption -->
+    <p class="mt-7 font-sans text-[0.8125rem] text-center" style="color: var(--text-muted);">
+      <span class="font-playfair text-[0.9375rem]">RIZZ</span>
+      &nbsp;&mdash;&nbsp;Campus Placement &amp; Learning Platform
+    </p>
+
+  </main>
+
+
+  <!-- ============================================================
+       SheetJS
+  ============================================================ -->
+  <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+
+  <!-- ============================================================
+       APP LOGIC
+  ============================================================ -->
+  <script>
+    'use strict';
+
+    /* ──────────────────────────────────────────────
+       CONSTANTS
+    ────────────────────────────────────────────── */
+    const EXCEL_FILE       = 'students.xlsx';
+    const LS_THEME         = 'rizz_theme';
+    const LS_CURRENT_USER  = 'currentUser';
+
+    const REQUIRED_COLUMNS = [
+      'Name', 'Email', 'Phone', 'Password', 'User ID', 'Role', 'First Login',
+    ];
+
+    const ALLOWED_ROLES = ['student', 'mentor', 'admin', 'hiring'];
+
+    const ROLE_ROUTES = {
+      student: 'STUD.html',
+      mentor:  'MENTOR.html',
+      admin:   'ADMIN.html',
+      hiring:  'HIRING.html',
+    };
+
+    /* ──────────────────────────────────────────────
+       DOM REFS
+    ────────────────────────────────────────────── */
+    const html           = document.documentElement;
+    const brandLogo      = document.getElementById('brandLogo');
+    const themeToggle    = document.getElementById('themeToggle');
+    const themeIcon      = document.getElementById('themeIcon');
+    const themeLabel     = document.getElementById('themeLabel');
+
+    const loginForm      = document.getElementById('loginForm');
+    const studentIdInput = document.getElementById('studentIdInput');
+    const passwordInput  = document.getElementById('passwordInput');
+    const togglePassword = document.getElementById('togglePassword');
+    const eyeIcon        = document.getElementById('eyeIcon');
+
+    const loginBtn         = document.getElementById('loginBtn');
+    const loginBtnContent  = document.getElementById('loginBtnContent');
+
+    const systemMsg        = document.getElementById('systemMsg');
+    const systemMsgText    = document.getElementById('systemMsgText');
+    const credError        = document.getElementById('credError');
+
+    /* ──────────────────────────────────────────────
+       STATE
+    ────────────────────────────────────────────── */
+    let users       = [];
+    let dbReady     = false;
+
+    /* ──────────────────────────────────────────────
+       HELPERS — NORMALISATION
+    ────────────────────────────────────────────── */
+    function normaliseText(v) {
+      if (v === null || v === undefined) return '';
+      return String(v).trim();
+    }
+
+    function normaliseEmail(v) {
+      return normaliseText(v).toLowerCase();
+    }
+
+    function normalisePhone(v) {
+      /* SheetJS can parse numeric phone numbers as floats, e.g. 9876543210.0 */
+      let s = normaliseText(v);
+      if (s.endsWith('.0')) s = s.slice(0, -2);
+      return s.replace(/\D/g, '');
+    }
+
+    function normaliseRole(v) {
+      return normaliseText(v).toLowerCase();
+    }
+
+    /* ──────────────────────────────────────────────
+       HELPERS — UI
+    ────────────────────────────────────────────── */
+    function showSystemMsg(msg, type /* 'error' | 'warn' */) {
+      systemMsg.className = `system-msg ${type}`;
+      systemMsgText.textContent = msg;
+    }
+
+    function hideSystemMsg() {
+      systemMsg.className = 'system-msg hidden';
+      systemMsgText.textContent = '';
+    }
+
+    function showCredError() {
+      credError.classList.remove('hidden');
+    }
+
+    function hideCredError() {
+      credError.classList.add('hidden');
+    }
+
+    function setLoginBtnLoading(loading) {
+      if (loading) {
+        loginBtnContent.innerHTML = '<span class="spinner" aria-hidden="true"></span>&nbsp;Signing in…';
+        loginBtn.disabled = true;
+        loginBtn.setAttribute('aria-busy', 'true');
+      } else {
+        loginBtnContent.textContent = 'Login';
+        loginBtn.disabled = !dbReady;
+        loginBtn.removeAttribute('aria-busy');
+      }
+    }
+
+    /* ──────────────────────────────────────────────
+       THEME
+    ────────────────────────────────────────────── */
+    function applyTheme(theme) {
+      const isDark = theme === 'dark';
+
+      if (isDark) {
+        html.classList.add('dark');
+      } else {
+        html.classList.remove('dark');
+      }
+
+      /* Logo swap */
+      brandLogo.src = isDark ? 'logo-dark.png' : 'logo-light.png';
+      brandLogo.alt = 'RIZZ for Colleges';
+
+      /* Toggle button */
+      if (isDark) {
+        themeIcon.className  = 'fa-solid fa-moon text-[0.75rem]';
+        themeLabel.textContent = 'Dark';
+      } else {
+        themeIcon.className  = 'fa-solid fa-sun text-[0.75rem]';
+        themeLabel.textContent = 'Light';
+      }
+
+      localStorage.setItem(LS_THEME, theme);
+    }
+
+    themeToggle.addEventListener('click', () => {
+      const isDark = html.classList.contains('dark');
+      applyTheme(isDark ? 'light' : 'dark');
+    });
+
+    /* Apply persisted theme on load */
+    (function () {
+      const saved = localStorage.getItem(LS_THEME);
+      const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+      applyTheme(saved || (prefersDark ? 'dark' : 'light'));
+    })();
+
+    /* ──────────────────────────────────────────────
+       LOAD EXCEL DATABASE
+    ────────────────────────────────────────────── */
+    async function loadDatabase() {
+      loginBtn.disabled = true;
+
+      try {
+        const response = await fetch(EXCEL_FILE, { cache: 'no-store' });
+
+        if (!response.ok) {
+          throw new Error(
+            `The account database could not be found (${EXCEL_FILE}). ` +
+            'Make sure the file is in the same folder as this page.'
+          );
+        }
+
+        const buffer   = await response.arrayBuffer();
+        const workbook = XLSX.read(buffer, { type: 'array' });
+
+        if (!workbook.SheetNames.length) {
+          throw new Error('The account database is empty.');
+        }
+
+        const sheet   = workbook.Sheets[workbook.SheetNames[0]];
+        const rawRows = XLSX.utils.sheet_to_json(sheet, { defval: '' });
+
+        if (!rawRows.length) {
+          throw new Error('The account database contains no records.');
+        }
+
+        /* Validate required columns */
+        const actualCols   = Object.keys(rawRows[0]);
+        const missingCols  = REQUIRED_COLUMNS.filter(c => !actualCols.includes(c));
+        if (missingCols.length) {
+          throw new Error(`Account database is missing required columns: ${missingCols.join(', ')}.`);
+        }
+
+        /* Map rows to user objects */
+        const parsed = rawRows
+          .map(row => ({
+            name:       normaliseText(row['Name']),
+            email:      normaliseEmail(row['Email']),
+            phone:      normalisePhone(row['Phone']),
+            password:   normaliseText(row['Password']),
+            userId:     normaliseText(row['User ID']),
+            role:       normaliseRole(row['Role']),
+            firstLogin: normaliseText(row['First Login']).toLowerCase(),
+            college:    normaliseText(row['College']),
+          }))
+          .filter(u => u.email); /* skip blank rows */
+
+        if (!parsed.length) {
+          throw new Error('No valid user records were found in the account database.');
+        }
+
+        /* Validate roles */
+        const badRole = parsed.find(u => !ALLOWED_ROLES.includes(u.role));
+        if (badRole) {
+          throw new Error(
+            `Account database contains an unrecognised role "${badRole.role}" for ${badRole.email}. ` +
+            'Allowed values: Student, Mentor, Admin, Hiring.'
+          );
+        }
+
+        /* Validate unique emails */
+        const seen = new Set();
+        for (const u of parsed) {
+          if (seen.has(u.email)) {
+            throw new Error(`Duplicate email found in account database: ${u.email}`);
+          }
+          seen.add(u.email);
+        }
+
+        users   = parsed;
+        dbReady = true;
+        loginBtn.disabled = false;
+        hideSystemMsg();
+
+      } catch (err) {
+        console.error('[RIZZ] Database load error:', err);
+        showSystemMsg(
+          err.message || 'Unable to load the account database. Please try again.',
+          'warn'
+        );
+        loginBtn.disabled = true;
+      }
+    }
+
+    /* ──────────────────────────────────────────────
+       PASSWORD VISIBILITY TOGGLE
+    ────────────────────────────────────────────── */
+    togglePassword.addEventListener('click', () => {
+      const isHidden = passwordInput.type === 'password';
+      passwordInput.type = isHidden ? 'text' : 'password';
+      eyeIcon.className  = isHidden ? 'fa-regular fa-eye-slash text-[1rem]' : 'fa-regular fa-eye text-[1rem]';
+      togglePassword.setAttribute('aria-label', isHidden ? 'Hide password' : 'Show password');
+    });
+
+    /* ──────────────────────────────────────────────
+       CLEAR INLINE ERRORS ON INPUT
+    ────────────────────────────────────────────── */
+    [studentIdInput, passwordInput].forEach(el => {
+      if (el) el.addEventListener('input', hideCredError);
+    });
+
+    /* ──────────────────────────────────────────────
+       LOGIN FORM SUBMISSION
+    ────────────────────────────────────────────── */
+    loginForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      hideCredError();
+
+      const studentId = normaliseText(studentIdInput.value);
+      const password  = normaliseText(passwordInput.value);
+
+      if (!studentId || !password) {
+        showCredError();
+        return;
+      }
+
+      setLoginBtnLoading(true);
+      let verifiedUser = null;
+
+      // 1. Query Firebase Realtime Database at /students/{studentId}
+      if (window.RizzDB) {
+        try {
+          const cleanId = studentId.replace(/[.#$\[\]\/]/g, '_');
+          const fbRecord = await window.RizzDB.getStudent(cleanId);
+          if (fbRecord && fbRecord.status !== 'inactive' && String(fbRecord.password || '').trim() === password) {
+            verifiedUser = {
+              userId: fbRecord.studentId || cleanId,
+              studentId: fbRecord.studentId || cleanId,
+              name: fbRecord.name || fbRecord.studentName || 'Student',
+              studentName: fbRecord.name || fbRecord.studentName || 'Student',
+              role: fbRecord.role || 'student',
+              email: fbRecord.email || '',
+              college: fbRecord.college || '',
+              phone: fbRecord.phone || '',
+              firstLogin: fbRecord.firstLogin || 'no'
+            };
+          }
+        } catch (err) {
+          console.warn('[RIZZ] Firebase student lookup notice:', err);
+        }
+      }
+
+      // 2. Fallback to local students array from students.xlsx if Firebase record not matched
+      if (!verifiedUser && users && users.length) {
+        const matched = users.find(u => 
+          (u.userId && u.userId.toLowerCase() === studentId.toLowerCase()) ||
+          (u.email && u.email.toLowerCase() === studentId.toLowerCase())
+        );
+        if (matched && matched.password === password) {
+          verifiedUser = {
+            userId: matched.userId || studentId,
+            studentId: matched.userId || studentId,
+            name: matched.name,
+            studentName: matched.name,
+            role: matched.role || 'student',
+            email: matched.email || '',
+            college: matched.college || '',
+            phone: matched.phone || '',
+            firstLogin: matched.firstLogin || 'no'
+          };
+        }
+      }
+
+      if (!verifiedUser) {
+        setLoginBtnLoading(false);
+        showCredError();
+        studentIdInput.focus();
+        return;
+      }
+
+      /* Store active session in sessionStorage and localStorage */
+      sessionStorage.setItem(LS_CURRENT_USER, JSON.stringify(verifiedUser));
+      sessionStorage.setItem('studentId', verifiedUser.userId);
+      sessionStorage.setItem('studentName', verifiedUser.name);
+      localStorage.setItem(LS_CURRENT_USER, JSON.stringify(verifiedUser));
+
+      const destination = ROLE_ROUTES[verifiedUser.role] || 'STUD.html';
+
+      /* Small delay so the loading spinner is smooth */
+      setTimeout(() => {
+        window.location.href = destination;
+      }, 350);
+    });
+
+    /* ──────────────────────────────────────────────
+       INIT
+    ────────────────────────────────────────────── */
+    document.addEventListener('DOMContentLoaded', () => {
+      /* Trigger blob fade-in */
+      document.body.classList.add('ready');
+
+      loadDatabase();
+    });
+  </script>
+
+</body>
+</html>
