@@ -5161,11 +5161,29 @@
     }
 
     function getStudentAttempt(userId) {
+      const targetId = (userId || (currentUser && currentUser.userId) || '').toLowerCase().trim();
+      const targetEmail = ((currentUser && currentUser.email) || '').toLowerCase().trim();
+
+      // If currently in active exam in-memory session, prioritize and merge in-memory attempt
+      if (typeof activeExamState !== 'undefined' && activeExamState && (activeExamState.isStarted || activeExamState.isSubmitting) && activeExamState.attempt) {
+        const memAtt = activeExamState.attempt;
+        const memId = String(memAtt.studentId || '').toLowerCase().trim();
+        const memEmail = String(memAtt.email || '').toLowerCase().trim();
+        if ((targetId && memId === targetId) || (targetEmail && memEmail === targetEmail) || !targetId) {
+          try {
+            const attempts = JSON.parse(localStorage.getItem(LS_PRETEST_ATTEMPTS) || '{}');
+            const stored = attempts[userId || (currentUser && currentUser.userId) || 'STUD-001'];
+            if (stored && stored.answers) {
+              memAtt.answers = Object.assign({}, stored.answers, memAtt.answers || {});
+            }
+          } catch (e) {}
+          return memAtt;
+        }
+      }
+
       try {
         const attempts = JSON.parse(localStorage.getItem(LS_PRETEST_ATTEMPTS) || '{}');
         if (userId && attempts[userId]) return attempts[userId];
-        const targetId = (userId || (currentUser && currentUser.userId) || '').toLowerCase().trim();
-        const targetEmail = ((currentUser && currentUser.email) || '').toLowerCase().trim();
         for (const k in attempts) {
           const a = attempts[k];
           if (!a) continue;
@@ -5197,6 +5215,10 @@
 
     let _pretestDebounceTimer = null;
     function saveStudentAttempt(att, immediateNetworkSync) {
+      if (!att) return;
+      if (typeof activeExamState !== 'undefined' && activeExamState && (activeExamState.isStarted || activeExamState.isSubmitting)) {
+        activeExamState.attempt = att;
+      }
       try {
         const attempts = JSON.parse(localStorage.getItem(LS_PRETEST_ATTEMPTS) || '{}');
         const key = att.studentId || (currentUser && currentUser.userId) || 'STUD-001';
@@ -5288,6 +5310,7 @@
 
     let activeExamState = {
       isStarted: false,
+      isSubmitting: false,
       attempt: null,
       questions: [],
       currentIndex: 0,
@@ -5299,6 +5322,11 @@
     function renderPreTestStudentView() {
       const container = document.getElementById('pretest-container');
       if (!container) return;
+
+      if (activeExamState && activeExamState.isSubmitting) {
+        renderSubmittingView(container);
+        return;
+      }
 
       const uId = (currentUser && currentUser.userId) || 'STUD-001';
       const att = getStudentAttempt(uId);
@@ -5322,6 +5350,22 @@
         disarmProctoring();
         renderLandingView(container, att);
       }
+    }
+
+    function renderSubmittingView(container) {
+      container.innerHTML = `
+        <div class="glass-card max-w-2xl mx-auto p-8 md:p-12 text-center ambient-card-primary">
+          <div class="w-16 h-16 rounded-full bg-[#D31F83]/10 text-[#D31F83] flex items-center justify-center text-2xl mx-auto mb-4 animate-spin">
+            <i class="fa-solid fa-circle-notch"></i>
+          </div>
+          <h2 class="font-grotesque text-3xl font-800 text-[var(--text-primary)] m-0">
+            Submitting Pre-Test...
+          </h2>
+          <p class="font-sans text-sm text-[var(--text-muted)] mt-2 mb-0">
+            Securing all your recorded responses and transmitting to examination servers. Please do not refresh or close the page.
+          </p>
+        </div>
+      `;
     }
 
     let activeLandingTimerInterval = null;
@@ -5805,33 +5849,49 @@
         }
       }
 
-      const opts = ['A', 'B', 'C', 'D'];
-      let optsHtml = '';
-      const qOpts = q.options || {};
-      opts.forEach(function (optKey) {
-        const optText = qOpts[optKey] || '';
-        const isSelected = String(savedAns).toUpperCase() === optKey;
-        const inputId = 'opt_' + q.id + '_' + optKey;
-        optsHtml += `
-          <label for="${inputId}" class="option-card${isSelected ? ' selected' : ''}" onclick="selectMCQOption('${q.id}', '${optKey}', event)">
-            <input
-              type="radio"
-              id="${inputId}"
-              name="mcq_${q.id}"
-              value="${optKey}"
-              ${isSelected ? 'checked' : ''}
-              class="option-radio-input"
-              onclick="event.stopPropagation()"
-              onchange="selectMCQOption('${q.id}', '${optKey}', event)"
-            />
-            <span class="option-badge">${optKey}</span>
-            <span class="option-text font-sans text-sm md:text-base text-[var(--text-primary)] font-medium leading-relaxed flex-1">
-              ${escapeHtml(optText)}
-            </span>
-          </label>
+      const isDescriptive = q.type === 'descriptive' || q.type === 'text';
+      let answerUi = '';
+      if (isDescriptive) {
+        answerUi = `
+          <div class="mt-6 space-y-3">
+            <label for="desc_${q.id}" class="font-sans text-xs text-[var(--text-muted)] font-medium">Your Descriptive Answer:</label>
+            <textarea
+              id="desc_${q.id}"
+              class="w-full h-36 p-4 rounded-xl bg-[var(--bg-app)] border border-[var(--border-subtle)] text-[var(--text-primary)] font-sans text-sm focus:outline-none focus:border-[#D31F83] transition-colors resize-y leading-relaxed"
+              placeholder="Type your response here..."
+              oninput="saveDescriptiveAnswer('${q.id}', this.value)"
+            >${escapeHtml(savedAns)}</textarea>
+          </div>
         `;
-      });
-      const answerUi = `<div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-6" role="radiogroup" aria-label="Question options">${optsHtml}</div>`;
+      } else {
+        const opts = ['A', 'B', 'C', 'D'];
+        let optsHtml = '';
+        const qOpts = q.options || {};
+        opts.forEach(function (optKey) {
+          const optText = qOpts[optKey] || '';
+          const isSelected = String(savedAns).toUpperCase() === optKey;
+          const inputId = 'opt_' + q.id + '_' + optKey;
+          optsHtml += `
+            <label for="${inputId}" class="option-card${isSelected ? ' selected' : ''}" onclick="selectMCQOption('${q.id}', '${optKey}', event)">
+              <input
+                type="radio"
+                id="${inputId}"
+                name="mcq_${q.id}"
+                value="${optKey}"
+                ${isSelected ? 'checked' : ''}
+                class="option-radio-input"
+                onclick="event.stopPropagation()"
+                onchange="selectMCQOption('${q.id}', '${optKey}', event)"
+              />
+              <span class="option-badge">${optKey}</span>
+              <span class="option-text font-sans text-sm md:text-base text-[var(--text-primary)] font-medium leading-relaxed flex-1">
+                ${escapeHtml(optText)}
+              </span>
+            </label>
+          `;
+        });
+        answerUi = `<div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-6" role="radiogroup" aria-label="Question options">${optsHtml}</div>`;
+      }
 
       card.innerHTML = `
         <div class="flex flex-wrap items-center justify-between gap-2 mb-4 pb-3 border-b border-[var(--border-subtle)]">
@@ -5844,7 +5904,7 @@
             </span>
           </div>
           <span class="text-xs text-[var(--text-muted)] font-sans">
-            Multiple Choice Question
+            ${isDescriptive ? 'Descriptive Response' : 'Multiple Choice Question'}
           </span>
         </div>
 
@@ -5855,6 +5915,33 @@
         ${answerUi}
       `;
 
+      updatePalettePills();
+    }
+
+    function saveDescriptiveAnswer(qId, val) {
+      const uId = (currentUser && currentUser.userId) || 'STUD-001';
+      let att = getStudentAttempt(uId);
+      if (!att) {
+        try {
+          const attempts = JSON.parse(localStorage.getItem(LS_PRETEST_ATTEMPTS) || '{}');
+          for (const k in attempts) {
+            if (attempts[k] && attempts[k].status === 'in_progress') {
+              att = attempts[k];
+              break;
+            }
+          }
+        } catch (e) {}
+      }
+      if (!att || att.status !== 'in_progress') return;
+      if (!att.answers) att.answers = {};
+      att.answers[qId] = val;
+
+      if (activeExamState && activeExamState.attempt) {
+        if (!activeExamState.attempt.answers) activeExamState.attempt.answers = {};
+        activeExamState.attempt.answers[qId] = val;
+      }
+
+      saveStudentAttempt(att, false);
       updatePalettePills();
     }
 
@@ -6133,11 +6220,22 @@ The score must be between 0 and the maximum marks assigned to the question.`;
 
     async function submitPreTest(isAutoSubmit, autoReason) {
       disarmProctoring();
-      clearInterval(activeExamState.timerInterval);
-      activeExamState.isStarted = false;
+      if (activeExamState.timerInterval) clearInterval(activeExamState.timerInterval);
+      activeExamState.isSubmitting = true;
 
-      const att = getStudentAttempt(currentUser.userId);
-      if (!att) return;
+      const container = document.getElementById('pretest-container');
+      if (container) renderSubmittingView(container);
+
+      const uId = (currentUser && currentUser.userId) || 'STUD-001';
+
+      // Load active attempt and merge with in-memory attempt to guarantee 100% answer retention
+      let att = activeExamState.attempt || getStudentAttempt(uId) || {};
+      const storedAttempts = JSON.parse(localStorage.getItem(LS_PRETEST_ATTEMPTS) || '{}');
+      const storedAtt = storedAttempts[uId] || {};
+
+      // Merge answers so ALL answered questions (MCQ + Descriptive) are fully preserved
+      const mergedAnswers = Object.assign({}, storedAtt.answers || {}, (activeExamState.attempt && activeExamState.attempt.answers) || {}, att.answers || {});
+      att.answers = mergedAnswers;
 
       const examConfig = getExamConfig();
 
@@ -6158,7 +6256,7 @@ The score must be between 0 and the maximum marks assigned to the question.`;
                 questionId: q.id,
                 text: q.text,
                 questionText: q.text,
-                type: 'mcq',
+                type: q.type || 'mcq',
                 options: q.options ? JSON.parse(JSON.stringify(q.options)) : null,
                 correctAnswer: q.correctAnswer || null,
                 marks: Number(q.marks) || 1,
@@ -6198,26 +6296,41 @@ The score must be between 0 and the maximum marks assigned to the question.`;
         const rawStudentAns = att.answers ? (att.answers[qKey] || '') : '';
         const studentAns = typeof rawStudentAns === 'string' ? rawStudentAns : String(rawStudentAns || '');
 
-        const studentNorm = normalizeMCQAnswer(studentAns);
-        const correctNorm = normalizeMCQAnswer(q.correctAnswer);
-        const isCorrect = Boolean(studentNorm && correctNorm && studentNorm === correctNorm);
-        const earned = isCorrect ? marks : 0;
+        if (q.type === 'descriptive' || q.type === 'text') {
+          // Descriptive question recorded for evaluator review
+          att.mcqEvaluations[qKey] = {
+            questionId: qKey,
+            questionText: q.text || q.questionText,
+            studentAnswer: studentAns,
+            correctAnswer: null,
+            marks: marks,
+            earnedMarks: 0,
+            isCorrect: false,
+            isDescriptive: true,
+            evaluatedAt: new Date().toISOString()
+          };
+        } else {
+          const studentNorm = normalizeMCQAnswer(studentAns);
+          const correctNorm = normalizeMCQAnswer(q.correctAnswer);
+          const isCorrect = Boolean(studentNorm && correctNorm && studentNorm === correctNorm);
+          const earned = isCorrect ? marks : 0;
 
-        mcqScore += earned;
-        if (setKey === 'production') productionScore += earned;
-        else if (setKey === 'strategy') strategyScore += earned;
-        else if (setKey === 'tech') techScore += earned;
+          mcqScore += earned;
+          if (setKey === 'production') productionScore += earned;
+          else if (setKey === 'strategy') strategyScore += earned;
+          else if (setKey === 'tech') techScore += earned;
 
-        att.mcqEvaluations[qKey] = {
-          questionId: qKey,
-          questionText: q.text || q.questionText,
-          studentAnswer: studentNorm,
-          correctAnswer: correctNorm,
-          marks: marks,
-          earnedMarks: earned,
-          isCorrect: isCorrect,
-          evaluatedAt: new Date().toISOString()
-        };
+          att.mcqEvaluations[qKey] = {
+            questionId: qKey,
+            questionText: q.text || q.questionText,
+            studentAnswer: studentNorm,
+            correctAnswer: correctNorm,
+            marks: marks,
+            earnedMarks: earned,
+            isCorrect: isCorrect,
+            evaluatedAt: new Date().toISOString()
+          };
+        }
       });
 
       const totalScore = mcqScore;
@@ -6260,28 +6373,33 @@ The score must be between 0 and the maximum marks assigned to the question.`;
       att.isTie = isTie;
       att.published = false;
 
-      saveStudentAttempt(att);
+      saveStudentAttempt(att, true);
+
+      const progKey = 'rizz_progress_' + uId;
+      const prog = getStudentProgress(uId);
+      prog.preTestStatus = 'submitted';
+      prog.workshopStatus = 'locked';
+      prog.resultsStatus = 'locked';
+      localStorage.setItem(progKey, JSON.stringify(prog));
 
       try {
-        const uId = currentUser.userId || 'STUD-001';
-        const progKey = 'rizz_progress_' + uId;
-        const prog = getStudentProgress(uId);
-        prog.preTestStatus = 'submitted';
-        prog.workshopStatus = 'locked';
-        prog.resultsStatus = 'locked';
-        localStorage.setItem(progKey, JSON.stringify(prog));
-
         if (window.RizzDB) {
-          window.RizzDB.pushSubmission(att);
-          window.RizzDB.saveProgress(uId, prog);
+          await window.RizzDB.savePreTestAttempt(uId, att);
+          await window.RizzDB.pushSubmission(att);
+          await window.RizzDB.saveProgress(uId, prog);
         }
 
-        fetch(getBackendApiUrl('/api/progress/' + encodeURIComponent(uId)), {
+        await fetch(getBackendApiUrl('/api/progress/' + encodeURIComponent(uId)), {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ progress: prog })
         }).catch(function () {});
-      } catch (e) {}
+      } catch (e) {
+        console.warn('Network sync notice during submission:', e);
+      }
+
+      activeExamState.isStarted = false;
+      activeExamState.isSubmitting = false;
 
       syncWorkshopNavAndJourney();
       renderPreTestStudentView();
@@ -6325,7 +6443,7 @@ The score must be between 0 and the maximum marks assigned to the question.`;
             </div>
             <div class="flex justify-between">
               <span class="text-[var(--text-muted)]">Questions Recorded:</span>
-              <span class="text-[var(--text-primary)]">${answeredCount} questions</span>
+              <span class="text-[var(--text-primary)]">${answeredCount} question${answeredCount === 1 ? '' : 's'}</span>
             </div>
             <div class="flex justify-between">
               <span class="text-[var(--text-muted)]">Evaluation Status:</span>
@@ -9848,13 +9966,9 @@ The score must be between 0 and the maximum marks assigned to the question.`;
       if (!att || typeof att !== 'object') return;
       const uId = (currentUser && currentUser.userId) || 'STUD-001';
 
-      // Protect in-progress pre-test from being overridden by remote submitted/published attempts
-      if (activeExamState && activeExamState.isStarted) {
-        const attemptsLocal = JSON.parse(localStorage.getItem(LS_PRETEST_ATTEMPTS) || '{}');
-        const localCurrent = attemptsLocal[uId];
-        if (localCurrent && localCurrent.status === 'in_progress' && (att.status === 'submitted' || att.status === 'Pending' || att.status === 'Finalized' || att.status === 'Published')) {
-          return;
-        }
+      // Protect in-progress and submitting pre-test from being overridden by remote attempts
+      if (activeExamState && (activeExamState.isStarted || activeExamState.isSubmitting)) {
+        return;
       }
 
       const attempts = JSON.parse(localStorage.getItem(LS_PRETEST_ATTEMPTS) || '{}');
@@ -9903,7 +10017,10 @@ The score must be between 0 and the maximum marks assigned to the question.`;
       const localProgKey = 'rizz_progress_' + uId;
 
       if (prog.preTestStatus === 'ready') {
-        // Complete Admin Reset
+        // Complete Admin Reset (only if not taking active exam right now)
+        if (activeExamState && (activeExamState.isStarted || activeExamState.isSubmitting)) {
+          return;
+        }
         const resetProg = Object.assign({
           preTestStatus: 'ready',
           preTestAttempt: null,
@@ -9944,8 +10061,8 @@ The score must be between 0 and the maximum marks assigned to the question.`;
         return;
       }
 
-      // Do not let stale background progress alter active exam in progress
-      if (activeExamState && activeExamState.isStarted) {
+      // Do not let stale background progress alter active exam in progress or submitting
+      if (activeExamState && (activeExamState.isStarted || activeExamState.isSubmitting)) {
         if (prog.preTestStatus === 'reviewed' || prog.preTestStatus === 'submitted') {
           return;
         }
@@ -9964,7 +10081,7 @@ The score must be between 0 and the maximum marks assigned to the question.`;
 
       if (mergedProg.preTestStatus === 'reviewed' || mergedProg.workshopStatus === 'available' || mergedProg.workshopStatus === 'in_progress') {
         const attempts = JSON.parse(localStorage.getItem(LS_PRETEST_ATTEMPTS) || '{}');
-        if (attempts[uId] && (!activeExamState || !activeExamState.isStarted)) {
+        if (attempts[uId] && (!activeExamState || (!activeExamState.isStarted && !activeExamState.isSubmitting))) {
           attempts[uId].status = 'Published';
           attempts[uId].published = true;
           if (mergedProg.finalScore !== undefined) attempts[uId].adminFinalScore = mergedProg.finalScore;
@@ -10018,8 +10135,8 @@ The score must be between 0 and the maximum marks assigned to the question.`;
           try { localMap = JSON.parse(localStorage.getItem(LS_PRETEST_ATTEMPTS) || '{}'); } catch (e) {}
           const localAtt = localMap[uId];
           const merged = Object.assign({}, data.pretestAttempts);
-          // Preserve local in-progress attempt if currently taking exam or in progress locally
-          if (localAtt && localAtt.status === 'in_progress') {
+          // Preserve local in-progress, pending, or active exam attempt
+          if (localAtt && (localAtt.status === 'in_progress' || localAtt.status === 'Pending' || (activeExamState && (activeExamState.isStarted || activeExamState.isSubmitting)))) {
             merged[uId] = localAtt;
           }
           const prev = localStorage.getItem(LS_PRETEST_ATTEMPTS) || '{}';
