@@ -5195,7 +5195,8 @@
       }
     }
 
-    function saveStudentAttempt(att) {
+    let _pretestDebounceTimer = null;
+    function saveStudentAttempt(att, immediateNetworkSync) {
       try {
         const attempts = JSON.parse(localStorage.getItem(LS_PRETEST_ATTEMPTS) || '{}');
         const key = att.studentId || (currentUser && currentUser.userId) || 'STUD-001';
@@ -5204,13 +5205,26 @@
       } catch (e) {
         console.error('Error saving attempt:', e);
       }
-      syncPreTestAttemptToBackend(att);
-      if (window.RizzDB) {
-        const uId = att.studentId || (currentUser && currentUser.userId) || 'STUD-001';
-        window.RizzDB.savePreTestAttempt(uId, att);
-        if (att.status === 'Pending' || att.status === 'Finalized' || att.submitTime) {
-          window.RizzDB.pushSubmission(att);
+
+      if (immediateNetworkSync || att.status === 'submitted' || att.status === 'Pending' || att.status === 'Finalized' || att.status === 'Published' || att.submitTime) {
+        if (_pretestDebounceTimer) clearTimeout(_pretestDebounceTimer);
+        syncPreTestAttemptToBackend(att);
+        if (window.RizzDB) {
+          const uId = att.studentId || (currentUser && currentUser.userId) || 'STUD-001';
+          window.RizzDB.savePreTestAttempt(uId, att);
+          if (att.status === 'Pending' || att.status === 'Finalized' || att.submitTime) {
+            window.RizzDB.pushSubmission(att);
+          }
         }
+      } else {
+        if (_pretestDebounceTimer) clearTimeout(_pretestDebounceTimer);
+        _pretestDebounceTimer = setTimeout(function () {
+          syncPreTestAttemptToBackend(att);
+          if (window.RizzDB) {
+            const uId = att.studentId || (currentUser && currentUser.userId) || 'STUD-001';
+            window.RizzDB.savePreTestAttempt(uId, att);
+          }
+        }, 800);
       }
     }
 
@@ -5611,7 +5625,13 @@
         };
       }
 
-      saveStudentAttempt(newAttempt);
+      saveStudentAttempt(newAttempt, true);
+      const uId = currentUser.userId || 'STUD-001';
+      const localProgKey = 'rizz_progress_' + uId;
+      const currentProg = getStudentProgress(uId);
+      currentProg.preTestStatus = 'in_progress';
+      localStorage.setItem(localProgKey, JSON.stringify(currentProg));
+
       activeExamState.isStarted = true;
       activeExamState.attempt = newAttempt;
       activeExamState.questions = newAttempt.questionsSnapshot || questions;
@@ -5793,7 +5813,7 @@
         const isSelected = String(savedAns).toUpperCase() === optKey;
         const inputId = 'opt_' + q.id + '_' + optKey;
         optsHtml += `
-          <label for="${inputId}" class="option-card${isSelected ? ' selected' : ''}" onclick="selectMCQOption('${q.id}', '${optKey}')">
+          <label for="${inputId}" class="option-card${isSelected ? ' selected' : ''}" onclick="selectMCQOption('${q.id}', '${optKey}', event)">
             <input
               type="radio"
               id="${inputId}"
@@ -5801,7 +5821,8 @@
               value="${optKey}"
               ${isSelected ? 'checked' : ''}
               class="option-radio-input"
-              onchange="selectMCQOption('${q.id}', '${optKey}')"
+              onclick="event.stopPropagation()"
+              onchange="selectMCQOption('${q.id}', '${optKey}', event)"
             />
             <span class="option-badge">${optKey}</span>
             <span class="option-text font-sans text-sm md:text-base text-[var(--text-primary)] font-medium leading-relaxed flex-1">
@@ -5837,7 +5858,10 @@
       updatePalettePills();
     }
 
-    function selectMCQOption(qId, optKey) {
+    function selectMCQOption(qId, optKey, event) {
+      if (event && event.preventDefault && event.target && event.target.tagName === 'INPUT' && event.type === 'click') {
+        event.stopPropagation();
+      }
       const uId = (currentUser && currentUser.userId) || 'STUD-001';
       let att = getStudentAttempt(uId);
       if (!att) {
@@ -5853,13 +5877,31 @@
       }
       if (!att || att.status !== 'in_progress') return;
       if (!att.answers) att.answers = {};
-      if (att.answers[qId] === optKey) {
-        updatePalettePills();
-        return;
-      }
       att.answers[qId] = optKey;
-      saveStudentAttempt(att);
-      renderActiveQuestion();
+
+      if (activeExamState && activeExamState.attempt) {
+        if (!activeExamState.attempt.answers) activeExamState.attempt.answers = {};
+        activeExamState.attempt.answers[qId] = optKey;
+      }
+
+      // Smooth in-place DOM class and radio state update without destroying card DOM
+      const card = document.getElementById('activeQuestionCard');
+      if (card) {
+        const optionCards = card.querySelectorAll('.option-card');
+        optionCards.forEach(function (lbl) {
+          const radio = lbl.querySelector('input[type="radio"]');
+          if (radio && radio.value === optKey) {
+            lbl.classList.add('selected');
+            radio.checked = true;
+          } else {
+            lbl.classList.remove('selected');
+            if (radio) radio.checked = false;
+          }
+        });
+      }
+
+      saveStudentAttempt(att, false);
+      updatePalettePills();
     }
 
     function updatePalettePills() {
@@ -5935,6 +5977,8 @@
       activeExamState.timerInterval = setInterval(tick, 1000);
     }
 
+    let lastViolationTimestamp = 0;
+
     function armProctoring() {
       if (activeExamState.proctoringArmed) return;
       activeExamState.proctoringArmed = true;
@@ -5956,6 +6000,9 @@
       activeExamState.proctoringArmed = false;
       document.removeEventListener('visibilitychange', onVisibilityChange);
       window.removeEventListener('blur', onWindowBlur);
+      const m = document.getElementById('modalPreTestViolation');
+      if (m) m.classList.remove('open');
+      activeExamState.isViolationModalOpen = false;
     }
 
     function onVisibilityChange() {
@@ -5965,13 +6012,21 @@
     }
 
     function onWindowBlur() {
-      if (activeExamState.proctoringArmed) {
-        handleViolation('Window lost focus');
-      }
+      if (!activeExamState.proctoringArmed || activeExamState.isViolationModalOpen) return;
+      // Debounce window blur to prevent false positive violations from internal clicks/gestures
+      setTimeout(function () {
+        if (activeExamState.proctoringArmed && document.visibilityState === 'hidden') {
+          handleViolation('Navigated away from examination window');
+        }
+      }, 500);
     }
 
     function handleViolation(reason) {
       if (!activeExamState.proctoringArmed || activeExamState.isViolationModalOpen) return;
+
+      const now = Date.now();
+      if (now - lastViolationTimestamp < 4000) return;
+      lastViolationTimestamp = now;
 
       const att = getStudentAttempt(currentUser.userId);
       if (!att || att.status !== 'in_progress') return;
@@ -5983,7 +6038,7 @@
         reason: reason,
         timestamp: Date.now()
       });
-      saveStudentAttempt(att);
+      saveStudentAttempt(att, true);
 
       if (att.warningCount === 1) {
         activeExamState.isViolationModalOpen = true;
@@ -9792,6 +9847,16 @@ The score must be between 0 and the maximum marks assigned to the question.`;
     function handleIncomingPreTestAttempt(att, isLiveUpdate) {
       if (!att || typeof att !== 'object') return;
       const uId = (currentUser && currentUser.userId) || 'STUD-001';
+
+      // Protect in-progress pre-test from being overridden by remote submitted/published attempts
+      if (activeExamState && activeExamState.isStarted) {
+        const attemptsLocal = JSON.parse(localStorage.getItem(LS_PRETEST_ATTEMPTS) || '{}');
+        const localCurrent = attemptsLocal[uId];
+        if (localCurrent && localCurrent.status === 'in_progress' && (att.status === 'submitted' || att.status === 'Pending' || att.status === 'Finalized' || att.status === 'Published')) {
+          return;
+        }
+      }
+
       const attempts = JSON.parse(localStorage.getItem(LS_PRETEST_ATTEMPTS) || '{}');
       const prevAtt = attempts[uId] || {};
       attempts[uId] = att;
@@ -9879,6 +9944,13 @@ The score must be between 0 and the maximum marks assigned to the question.`;
         return;
       }
 
+      // Do not let stale background progress alter active exam in progress
+      if (activeExamState && activeExamState.isStarted) {
+        if (prog.preTestStatus === 'reviewed' || prog.preTestStatus === 'submitted') {
+          return;
+        }
+      }
+
       const currentProg = getStudentProgress(uId);
       const mergedProg = Object.assign({}, currentProg, prog);
       if (currentProg.chosenTrack && !prog.chosenTrack) {
@@ -9892,7 +9964,7 @@ The score must be between 0 and the maximum marks assigned to the question.`;
 
       if (mergedProg.preTestStatus === 'reviewed' || mergedProg.workshopStatus === 'available' || mergedProg.workshopStatus === 'in_progress') {
         const attempts = JSON.parse(localStorage.getItem(LS_PRETEST_ATTEMPTS) || '{}');
-        if (attempts[uId]) {
+        if (attempts[uId] && (!activeExamState || !activeExamState.isStarted)) {
           attempts[uId].status = 'Published';
           attempts[uId].published = true;
           if (mergedProg.finalScore !== undefined) attempts[uId].adminFinalScore = mergedProg.finalScore;
@@ -9946,8 +10018,8 @@ The score must be between 0 and the maximum marks assigned to the question.`;
           try { localMap = JSON.parse(localStorage.getItem(LS_PRETEST_ATTEMPTS) || '{}'); } catch (e) {}
           const localAtt = localMap[uId];
           const merged = Object.assign({}, data.pretestAttempts);
-          // Preserve local in-progress attempt if server does not have a submitted/finalized attempt
-          if (localAtt && localAtt.status === 'in_progress' && (!merged[uId] || merged[uId].status === 'in_progress')) {
+          // Preserve local in-progress attempt if currently taking exam or in progress locally
+          if (localAtt && localAtt.status === 'in_progress') {
             merged[uId] = localAtt;
           }
           const prev = localStorage.getItem(LS_PRETEST_ATTEMPTS) || '{}';
