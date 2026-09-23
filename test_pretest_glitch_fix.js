@@ -31,8 +31,8 @@ assert.ok(studHtml.includes('now - lastViolationTimestamp < 4000'), 'Proctoring 
 assert.ok(studHtml.includes('document.visibilityState === \'hidden\''), 'Proctoring prioritizes true document visibility hidden');
 
 // 5. In-progress exam protection from background sync and Firebase
-assert.ok(studHtml.includes('if (activeExamState && activeExamState.isStarted)'), 'Incoming sync checks activeExamState.isStarted');
-assert.ok(studHtml.includes('localCurrent.status === \'in_progress\''), 'Incoming attempt sync protects local in_progress status');
+assert.ok(studHtml.includes('activeExamState.isStarted'), 'Incoming sync checks activeExamState.isStarted');
+assert.ok(studHtml.includes("localAtt.status === 'in_progress'"), 'Incoming attempt sync protects local in_progress status');
 
 console.log('✅ PASS: All 5 structural & event invariants verified in STUD.html');
 

@@ -5872,22 +5872,28 @@
           const isSelected = String(savedAns).toUpperCase() === optKey;
           const inputId = 'opt_' + q.id + '_' + optKey;
           optsHtml += `
-            <label for="${inputId}" class="option-card${isSelected ? ' selected' : ''}" onclick="selectMCQOption('${q.id}', '${optKey}', event)">
+            <div
+              id="opt_card_${q.id}_${optKey}"
+              class="option-card${isSelected ? ' selected' : ''}"
+              onclick="selectMCQOption('${q.id}', '${optKey}', event)"
+              role="button"
+              tabindex="0"
+              onkeydown="if(event.key==='Enter'||event.key===' '){selectMCQOption('${q.id}', '${optKey}', event);}"
+            >
               <input
                 type="radio"
                 id="${inputId}"
                 name="mcq_${q.id}"
                 value="${optKey}"
                 ${isSelected ? 'checked' : ''}
-                class="option-radio-input"
-                onclick="event.stopPropagation()"
-                onchange="selectMCQOption('${q.id}', '${optKey}', event)"
+                class="option-radio-input pointer-events-none"
+                tabindex="-1"
               />
               <span class="option-badge">${optKey}</span>
               <span class="option-text font-sans text-sm md:text-base text-[var(--text-primary)] font-medium leading-relaxed flex-1">
                 ${escapeHtml(optText)}
               </span>
-            </label>
+            </div>
           `;
         });
         answerUi = `<div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-6" role="radiogroup" aria-label="Question options">${optsHtml}</div>`;
@@ -5946,8 +5952,9 @@
     }
 
     function selectMCQOption(qId, optKey, event) {
-      if (event && event.preventDefault && event.target && event.target.tagName === 'INPUT' && event.type === 'click') {
-        event.stopPropagation();
+      if (event) {
+        if (typeof event.preventDefault === 'function') event.preventDefault();
+        if (typeof event.stopPropagation === 'function') event.stopPropagation();
       }
       const uId = (currentUser && currentUser.userId) || 'STUD-001';
       let att = getStudentAttempt(uId);
@@ -6065,10 +6072,21 @@
     }
 
     let lastViolationTimestamp = 0;
+    let isPageUnloading = false;
+    let proctoringArmTimestamp = 0;
+
+    window.addEventListener('beforeunload', function () {
+      isPageUnloading = true;
+    });
+    window.addEventListener('pagehide', function () {
+      isPageUnloading = true;
+    });
 
     function armProctoring() {
       if (activeExamState.proctoringArmed) return;
       activeExamState.proctoringArmed = true;
+      isPageUnloading = false;
+      proctoringArmTimestamp = Date.now();
 
       document.addEventListener('visibilitychange', onVisibilityChange);
       window.addEventListener('blur', onWindowBlur);
@@ -6093,15 +6111,21 @@
     }
 
     function onVisibilityChange() {
+      // Do NOT trigger violation during page unload/reload or during initial arming grace period
+      if (isPageUnloading) return;
+      if (Date.now() - proctoringArmTimestamp < 2500) return;
       if (document.visibilityState === 'hidden' && activeExamState.proctoringArmed) {
         handleViolation('Tab switched or minimized');
       }
     }
 
     function onWindowBlur() {
+      if (isPageUnloading) return;
+      if (Date.now() - proctoringArmTimestamp < 2500) return;
       if (!activeExamState.proctoringArmed || activeExamState.isViolationModalOpen) return;
       // Debounce window blur to prevent false positive violations from internal clicks/gestures
       setTimeout(function () {
+        if (isPageUnloading) return;
         if (activeExamState.proctoringArmed && document.visibilityState === 'hidden') {
           handleViolation('Navigated away from examination window');
         }

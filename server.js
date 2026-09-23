@@ -31,6 +31,34 @@ function sanitizeKey(key) {
   return String(key || '').replace(/[^a-zA-Z0-9_\-\.]/g, '_');
 }
 
+let inMemoryPretestAttempts = null;
+function getPretestAttemptsMap() {
+  if (!inMemoryPretestAttempts) {
+    const filePath = path.join(UPLOADS_DIR, 'pretest_attempts.json');
+    if (fs.existsSync(filePath)) {
+      try {
+        const raw = fs.readFileSync(filePath, 'utf8');
+        inMemoryPretestAttempts = raw ? JSON.parse(raw) : {};
+      } catch (e) {
+        inMemoryPretestAttempts = {};
+      }
+    } else {
+      inMemoryPretestAttempts = {};
+    }
+  }
+  return inMemoryPretestAttempts;
+}
+
+// Periodic background flush of in-memory attempts to disk
+setInterval(() => {
+  if (inMemoryPretestAttempts) {
+    try {
+      const filePath = path.join(UPLOADS_DIR, 'pretest_attempts.json');
+      fs.writeFileSync(filePath, JSON.stringify(inMemoryPretestAttempts, null, 2), 'utf8');
+    } catch (e) {}
+  }
+}, 60000);
+
 const server = http.createServer((req, res) => {
   // Common CORS headers
   const setCors = () => {
@@ -100,7 +128,7 @@ const server = http.createServer((req, res) => {
   if (pathname === '/api/sync/all' && req.method === 'GET') {
     setCors();
     const data = {
-      pretestAttempts: readJsonFile('pretest_attempts.json', {}),
+      pretestAttempts: getPretestAttemptsMap(),
       assessmentAttempts: readJsonFile('assessment_attempts.json', {}),
       workshopCompletions: readJsonFile('workshop_completions.json', {}),
       workshopChoices: readJsonFile('workshop_choices.json', {}),
@@ -119,21 +147,32 @@ const server = http.createServer((req, res) => {
   if (pathname === '/api/pretest/attempts') {
     setCors();
     if (req.method === 'GET') {
-      const attempts = readJsonFile('pretest_attempts.json', {});
+      const attempts = getPretestAttemptsMap();
       res.writeHead(200, { 'Content-Type': 'application/json' });
       res.end(JSON.stringify({ success: true, attempts }));
       return;
     }
     if (req.method === 'POST') {
       parseJsonBody(req).then(payload => {
-        let attempts = readJsonFile('pretest_attempts.json', {});
+        const attempts = getPretestAttemptsMap();
         if (payload.attempts && typeof payload.attempts === 'object') {
-          attempts = payload.attempts;
+          Object.assign(attempts, payload.attempts);
         }
+        let shouldWriteToDisk = false;
         if (payload.studentId && payload.attempt) {
           attempts[payload.studentId] = payload.attempt;
+          // Only write to disk when NOT in_progress (e.g. submitted, Pending, Finalized, Published)
+          // to prevent workspace file-watchers / Live Server from reloading the student's browser during exam!
+          if (payload.attempt.status && payload.attempt.status !== 'in_progress') {
+            shouldWriteToDisk = true;
+          }
+        } else if (payload.attempts) {
+          shouldWriteToDisk = true;
         }
-        writeJsonFile('pretest_attempts.json', attempts);
+
+        if (shouldWriteToDisk) {
+          writeJsonFile('pretest_attempts.json', attempts);
+        }
         res.writeHead(200, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({ success: true, attempts }));
       }).catch(err => {
@@ -369,7 +408,7 @@ const server = http.createServer((req, res) => {
       }
 
       // 1. Remove from pretest attempts
-      const pretest = readJsonFile('pretest_attempts.json', {});
+      const pretest = getPretestAttemptsMap();
       for (const k in pretest) {
         if (matchesStudent(k, pretest[k])) {
           delete pretest[k];
